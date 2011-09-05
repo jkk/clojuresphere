@@ -6,17 +6,34 @@
             [clojure.zip :as zip]
             [clojure.java.io :as io]))
 
-(defn parse-project-data [[_ proj-name version & opts]]
-  (let [proj-name (str proj-name)
-        name-parts (.split proj-name "/")
-        [group-id artifact-id] (if (= 2 (count name-parts))
-                                 name-parts
-                                 [proj-name proj-name])]
-    (assoc (apply hash-map opts)
-      :name proj-name
-      :group-id group-id
-      :artifact-id artifact-id
-      :version version)))
+(defn qualify-name [name]
+  (let [name (str name)
+        name-parts (.split name "/")]
+    (if (= 2 (count name-parts))
+      name-parts
+      [name name])))
+    
+(defn qualify-dep [[name version]]
+  (let [[gid aid] (qualify-name name)]
+    [gid aid version]))
+
+(defn make-dep
+  ([name version]
+     (let [[gid aid] (qualify-name name)]
+       (make-dep gid aid version)))
+  ([group-id artifact-id version]
+     (let [group-id (or group-id artifact-id)]
+       [(symbol (str group-id "/" artifact-id)) version])))
+
+;; TODO: project.clj should actually be eval'd, not just read
+(defn parse-project-data [[defproj name version & opts]]
+  (when (= defproj 'defproject)
+    (let [[gid aid] (qualify-name name)]
+      (assoc (apply hash-map opts)
+        :name (str name)
+        :group-id gid
+        :artifact-id aid
+        :version version))))
 
 ;; github
 
@@ -52,7 +69,6 @@
          :let [project (fetch-repo-project repo)]
          :when project]
      (assoc project
-       :source :github
        :github {:url (repo :url)
                 :owner (repo :owner)
                 :name (repo :name)
@@ -78,7 +94,7 @@
                                 (let [gid (xml1-> zdep :groupId text)
                                       aid (xml1-> zdep :artifactId text)
                                       name (if gid (str gid "/" aid) aid)]
-                                  {:dep [(symbol name) (xml1-> zdep :version text)]
+                                  {:dep (make-dep name (xml1-> zdep :version text))
                                    :scope (xml1-> zdep :scope text)})))]
     {:group-id group-id
      :artifact-id artifact-id
@@ -87,8 +103,7 @@
      :description (xml1-> z :description text)
      :dependencies (vec (map :dep (deps nil)))
      :dev-dependencies (vec (map :dep (deps "test")))
-     :source :clojars
-     :clojars {:dep [(symbol name) version]
+     :clojars {:dep (make-dep name version)
                :url (str "http://clojars.org/" name)}}))
 
 
@@ -102,8 +117,6 @@
                    (parse-pom-xml pom-xml))
                  (catch Exception _ nil)))))))
 
-
-
 (comment
 
   ;; manual fetching process
@@ -114,9 +127,43 @@
   ;; rsync -av clojars.org::clojars clojars
   (def clojars-projects (read-all-pom-projects
                          "/Users/tin/src/clj/clojuresphere/clojars/"))
-  
-  ;; TODO: merge projects
-  ;; TODO: create project dependency graph
-  ;; TODO: consider non-group-id name to have implicit group-id same as artifact-id
 
+  (def project-info
+    (reduce
+     (fn [m [aid k info]]
+       (update-in m [aid k] (fnil conj #{}) info))
+     {}
+     (for [p (concat github-projects clojars-projects)
+           :let [dep (apply make-dep (map p [:group-id :artifact-id :version]))
+                 p (assoc p :dep dep)]
+           k [:description :url :github :clojars :dep]
+           :let [info (p k)]
+           :when info]
+       [(-> p :artifact-id keyword) k info])))
+
+  (spit (str (System/getProperty "user.dir") "/resources/project_info.clj")
+        (prn-str project-info))
+  ;; then gzip project_info.clj
+
+  (def project-graph
+    (reduce
+     (fn [m [gid aid ver dep-gid dep-aid dep-ver :as edge-info]]
+       (let [gid (or gid aid)
+             p-dep (make-dep gid aid ver)
+             dep-dep (make-dep dep-gid dep-aid dep-ver)
+             aid (keyword aid)
+             dep-aid (keyword dep-aid)]
+         (-> m
+             (update-in [aid :out dep-aid] (fnil conj []) [p-dep dep-dep])
+             (update-in [dep-aid :in aid] (fnil conj []) [p-dep dep-dep]))))
+     {}
+     (for [p (concat github-projects clojars-projects)
+           dep (p :dependencies)]
+       (concat (map p [:group-id :artifact-id :version])
+               (qualify-dep dep)))))
+
+  (spit (str (System/getProperty "user.dir") "/resources/project_graph.clj")
+        (prn-str project-graph))
+  ;; then gzip project_graph.clj
+  
   )

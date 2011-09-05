@@ -1,4 +1,5 @@
-(ns clojuresphere.util)
+(ns clojuresphere.util
+  (:require [clojure.java.io :as io]))
 
 (defn memory-stats [& {:keys [gc]}]
   "Return stats about memory availability and usage, in MB. Calls
@@ -14,3 +15,21 @@
 
 (defn url-encode [s]
   (java.net.URLEncoder/encode s "UTF-8"))
+
+(defn read-resource [filename]
+  (with-open [in (-> filename
+                     io/resource
+                     io/file
+                     io/reader
+                     java.io.PushbackReader.)]
+    (read in)))
+
+(defn read-gz-resource [filename]
+  (with-open [in (-> filename
+                     io/resource
+                     io/file
+                     java.io.FileInputStream.
+                     java.util.zip.GZIPInputStream.
+                     io/reader
+                     java.io.PushbackReader.)]
+    (read in)))
