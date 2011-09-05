@@ -444,6 +444,9 @@ ul.dep-list li a:hover {
     background: #def;
     text-decoration: none;
 }
+ul.dep-list.ver li a {
+    width: 420px;
+}
 ul.version-list {
     margin: 1em 0;
     padding: 0;

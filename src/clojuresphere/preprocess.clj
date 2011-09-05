@@ -1,24 +1,10 @@
 (ns clojuresphere.preprocess
   (:use [clj-github.repos :only [search-repos]]
         [clojure.data.zip.xml :only [xml-> xml1-> text]]
-        [clojuresphere.util :only [url-encode qualify-name]])
+        [clojuresphere.util :only [url-encode qualify-name qualify-dep make-dep]])
   (:require [clojure.xml :as xml]
             [clojure.zip :as zip]
             [clojure.java.io :as io]))
-
-;; I'm not sure what to call a [group artifact version] vector,
-;; so I call it a "dep".
-(defn qualify-dep [[name version]]
-  (let [[gid aid] (qualify-name name)]
-    [gid aid version]))
-
-(defn make-dep
-  ([name version]
-     (let [[gid aid] (qualify-name name)]
-       (make-dep gid aid version)))
-  ([group-id artifact-id version]
-     (let [group-id (or group-id artifact-id)]
-       [(symbol (str group-id "/" artifact-id)) version])))
 
 ;; TODO: project.clj should actually be eval'd, not just read
 (defn parse-project-data [[defproj name version & opts]]

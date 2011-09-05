@@ -9,13 +9,19 @@
             [clojuresphere.project-model :as project]
             [compojure.route :as route]))
 
-;; TODO: project info, search
+;; TODO: search
 (defroutes routes
   (GET "/_stats" {{gc "gc"} :params}
        (prn-str (merge {:projects (count project/graph)
                         :memory (memory-stats :gc gc)})))
   (GET "/" [] (layout/welcome))
   (GET ["/:pid" :pid #"[a-zA-Z0-9\-\.\_]+"] [pid] (layout/project-detail pid))
+  (GET ["/:aid/:gid/:ver"
+        :aid #"[a-zA-Z0-9\-\.\_]+"
+        :gid #"[a-zA-Z0-9\-\.\_]+"
+        :ver #"[a-zA-Z0-9\-\.\_]+"]
+       [gid aid ver]
+        (layout/project-version-detail gid aid ver))
   (route/resources "/")
   (route/not-found (layout/not-found)))
 

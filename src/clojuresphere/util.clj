@@ -9,6 +9,20 @@
       name-parts
       [name name])))
 
+;; I'm not sure what to call a [group artifact version] vector,
+;; so I call it a "dep".
+(defn qualify-dep [[name version]]
+  (let [[gid aid] (qualify-name name)]
+    [gid aid version]))
+
+(defn make-dep
+  ([name version]
+     (let [[gid aid] (qualify-name name)]
+       (make-dep gid aid version)))
+  ([group-id artifact-id version]
+     (let [group-id (or group-id artifact-id)]
+       [(symbol (str group-id "/" artifact-id)) version])))
+
 (defn memory-stats [& {:keys [gc]}]
   "Return stats about memory availability and usage, in MB. Calls
   System/gc before gathering stats when the :gc option is true."

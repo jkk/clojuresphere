@@ -1,5 +1,5 @@
 (ns clojuresphere.layout
-  (:use [clojuresphere.util :only [url-encode qualify-name]]
+  (:use [clojuresphere.util :only [url-encode qualify-name make-dep]]
         [hiccup.page-helpers :only [html5 include-js include-css
                                     javascript-tag link-to]]
         [hiccup.core :only [h *base-url*]])
@@ -84,6 +84,44 @@
           (for [dep (sort (node :dependents))]
             [:li (link-to (name dep) (h (name dep)))])
           [:span.clear]])]])))
+
+(defn render-dep [dep]
+  (let [[name ver] (apply make-dep dep)]
+    (str name " " ver)))
+
+(defn dep-url [dep]
+  (let [[gid aid ver] (qualify-dep dep)]
+    (str "/" (url-encode gid) "/" (url-encode aid) "/" (url-encode ver))))
+
+(defn project-version-detail [gid aid ver]
+  (let [dep (make-dep gid aid ver)
+        aid (-> aid name keyword)
+        node (get-in project/graph [aid :versions dep])]
+    (when node
+      (page
+       (render-dep dep)
+       [:div.project-detail
+        [:div.overview
+         [:p.description "Main project: " (link-to (str "/" (url-encode (name aid)))
+                                                   (name aid))]
+         ;; TODO: show github/clojars links
+         [:div.clear]]
+        [:div.dependencies
+         [:h3 "Dependencies " [:span.count (count (node :dependencies))]]
+         (if (zero? (count (node :dependencies)))
+           [:p.none "None"]
+           [:ul.dep-list.ver
+            (for [dep (node :dependencies)]
+              [:li (link-to (dep-url dep) (h (render-dep dep)))])
+            [:span.clear]])]
+        [:div.dependents
+         [:h3 "Dependents " [:span.count (count (node :dependents))]]
+         (if (zero? (count (node :dependents)))
+           [:p.none "None"]
+           [:ul.dep-list.ver
+            (for [dep (sort (node :dependents))]
+              [:li (link-to (dep-url dep) (h (render-dep dep)))])
+            [:span.clear]])]]))))
 
 (defn project-list [pids]
   [:ul.project-list
