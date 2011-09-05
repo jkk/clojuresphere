@@ -1,12 +1,13 @@
 (ns clojuresphere.project-model
   (:use [clojuresphere.util :only [read-gz-resource]]))
 
-(defonce info (read-gz-resource "project_info.clj.gz"))
-(defonce graph (read-gz-resource "project_graph.clj.gz"))
-(defonce project-names (vec (keys graph)))
+;; we don't need no stinkin database
 
-(defn most-used []
-  (map key (sort-by (comp count :in val) > project-graph)))
+(defonce graph (read-gz-resource "project_graph.clj.gz"))
+(defonce most-used (->> graph
+                        (sort-by (comp count :dependents val) >)
+                        keys vec))
 
 (defn random []
-  (rand-nth project-names))
+  (rand-nth most-used))
+

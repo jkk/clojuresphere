@@ -6,13 +6,17 @@
             [clojure.zip :as zip]
             [clojure.java.io :as io]))
 
+;; TODO: rename ns to "preprocess"
+
 (defn qualify-name [name]
   (let [name (str name)
         name-parts (.split name "/")]
     (if (= 2 (count name-parts))
       name-parts
       [name name])))
-    
+
+;; I'm not sure what to call a [group artifact version] vector,
+;; so I call it a "dep".
 (defn qualify-dep [[name version]]
   (let [[gid aid] (qualify-name name)]
     [gid aid version]))
@@ -35,54 +39,6 @@
         :artifact-id aid
         :version version))))
 
-;; github
-
-(def github-auth {})
-
-(defn fetch-repos [start-page]
-  (Thread/sleep 250) ;crude rate limit
-  (println "Fetching page" start-page) ;FIXME: proper logging
-  (search-repos
-   github-auth "clojure" :language "clojure" :start-page start-page))
-
-(defn fetch-all-repos []
-  (->> (iterate inc 1)
-       (map fetch-repos)
-       (take-while seq)
-       (apply concat)
-       vec))
-
-(defn fetch-repo-project [repo]
-  (let [url (str "https://raw.github.com/"
-                 (:owner repo) "/"
-                 (:name repo) "/"
-                 "master/project.clj")]
-    (Thread/sleep 250) ;more crude rate limiting
-    (println "Fetching" url)
-    (try
-      (-> url slurp read-string parse-project-data)
-      (catch Exception _ nil))))
-
-(defn fetch-all-repo-projects [repos]
-  (doall
-   (for [repo repos
-         :let [project (fetch-repo-project repo)]
-         :when project]
-     (assoc project
-       :github {:url (repo :url)
-                :owner (repo :owner)
-                :name (repo :name)
-                :forks (repo :forks)
-                :watchers (repo :watchers)
-                :size (repo :size)
-                :created (repo :created_at)
-                :pushed (repo :pushed_at)
-                :open-issues (repo :open_issues)}))))
-
-;; TODO: fetch poms from github
-
-;; clojars
-
 ;; TODO: pom files have a crazy amount of options and can even depend
 ;; on other pom files (see poms for official clojure projects). Decide
 ;; whether it's worth figuring all that out, or if this is good enough.
@@ -104,10 +60,62 @@
      :version version
      :description (xml1-> z :description text)
      :dependencies (vec (map :dep (deps nil)))
-     :dev-dependencies (vec (map :dep (deps "test")))
-     :clojars {:dep (make-dep name version)
-               :url (str "http://clojars.org/" name)}}))
+     :dev-dependencies (vec (map :dep (deps "test")))}))
 
+;; github
+
+(def github-auth {})
+
+(defn fetch-repos [start-page]
+  (Thread/sleep 250) ;crude rate limit
+  (println "Fetching page" start-page) ;FIXME: proper logging
+  (search-repos
+   github-auth "clojure" :language "clojure" :start-page start-page))
+
+(defn fetch-all-repos []
+  (->> (iterate inc 1)
+       (map fetch-repos)
+       (take-while seq)
+       (apply concat)
+       vec))
+
+;; TODO: some repos have multiple project.clj files (e.g., ring)
+(defn fetch-repo-project [repo]
+  (let [base-url (str "https://raw.github.com/"
+                 (:owner repo) "/"
+                 (:name repo) "/"
+                 "master/")
+        project-url (str base-url "project.clj")
+        pom-url (str base-url "pom.xml")]
+    (Thread/sleep 250) ;more crude rate limiting
+    (println "Fetching" project-url)
+    (try
+      (-> project-url slurp read-string parse-project-data)
+      (catch Exception _
+        (Thread/sleep 250)
+        (println "Fetching" pom-url)
+        (try
+          (-> pom-url xml/parse parse-pom-xml)
+          (catch Exception _ nil))))))
+
+(defn fetch-all-repo-projects [repos]
+  (doall
+   (for [repo repos
+         :let [project (fetch-repo-project repo)]
+         :when project]
+     (assoc project
+       :github {:url (repo :url)
+                :owner (repo :owner)
+                :name (repo :name)
+                :description (repo :description)
+                :forks (repo :forks)
+                :watchers (repo :watchers)
+                :size (repo :size)
+                :created (repo :created_at)
+                :pushed (repo :pushed_at)
+                :open-issues (repo :open_issues)}))))
+
+;; clojars
 
 (defn read-all-pom-projects [clojars-dir]
   (with-open [r (io/reader (str clojars-dir "all-poms.txt"))]
@@ -115,8 +123,11 @@
      (remove nil?
              (for [pom-file (line-seq r)]
                (try
-                 (let [pom-xml (xml/parse (str clojars-dir pom-file))]
-                   (parse-pom-xml pom-xml))
+                 (let [pom-xml (xml/parse (str clojars-dir pom-file))
+                       project (parse-pom-xml pom-xml)]
+                   (assoc (dissoc project :description)
+                     :clojars {:description (project :description)
+                               :url (str "http://clojars.org/" (project :name))}))
                  (catch Exception _ nil)))))))
 
 (comment
@@ -124,51 +135,91 @@
   ;; manual fetching process
   
   (def repos (fetch-all-repos))
+  
+  ;; special exception for clojure itself (written in java)
+  (def clojure-repos (search-repos github-auth "clojure"))
+  (def repos (cons (first clojure-repos) repos))
+
   (def github-projects (fetch-all-repo-projects repos))
+
+  ;; Note: had to manually fix clojure-slick-rogue dependencies
 
   ;; rsync -av clojars.org::clojars clojars
   (def clojars-projects (read-all-pom-projects
                          "/Users/tin/src/clj/clojuresphere/clojars/"))
 
-  ;; TODO: associate description/url with particular versions (so we can use the
-  ;; best description)
-  (def project-info
+  (def project-versions
     (reduce
-     (fn [m [aid k info]]
-       (update-in m [aid k] (fnil conj #{}) info))
+     (fn [m [aid dep k info]]
+       (update-in m [aid :versions dep k] (fnil conj #{}) info))
      {}
      (for [p (concat github-projects clojars-projects)
            :let [dep (apply make-dep (map p [:group-id :artifact-id :version]))
                  p (assoc p :dep dep)]
-           k [:description :url :github :clojars :dep]
+           k [:github :clojars]
            :let [info (p k)]
            :when info]
-       [(-> p :artifact-id keyword) k info])))
+       [(-> p :artifact-id keyword) dep k info])))
 
-  (spit (str (System/getProperty "user.dir") "/resources/project_info.clj")
-        (prn-str project-info))
-  ;; then gzip project_info.clj
-
-  ;; TODO: include dev-dependencies
   (def project-graph
     (reduce
-     (fn [m [gid aid ver dep-gid dep-aid dep-ver :as edge-info]]
+     (fn [g [gid aid ver dep-dep]]
        (let [gid (or gid aid)
              p-dep (make-dep gid aid ver)
-             dep-dep (make-dep dep-gid dep-aid dep-ver)
+             [dep-gid dep-aid dep-ver] (qualify-dep dep-dep)
              aid (keyword aid)
              dep-aid (keyword dep-aid)]
-         (-> m
-             (update-in [aid :out dep-aid] (fnil conj []) [p-dep dep-dep])
-             (update-in [dep-aid :in aid] (fnil conj []) [p-dep dep-dep]))))
-     {}
+         (-> g
+             (update-in [aid :dependencies] (fnil conj #{}) dep-aid)
+             (update-in [aid :versions p-dep :dependencies]
+                        (fnil conj #{}) dep-dep)
+             (update-in [dep-aid :dependents] (fnil conj #{}) aid)
+             (update-in [dep-aid :versions dep-dep :dependents]
+                        (fnil conj #{}) p-dep))))
+     project-versions
      (for [p (concat github-projects clojars-projects)
-           dep (p :dependencies)]
+           dep (concat (get p :dependencies) (get p :dev-dependencies))]
        (concat (map p [:group-id :artifact-id :version])
-               (qualify-dep dep)))))
+               [dep]))))
+
+  ;; total watchers/forks
+  (def project-graph2
+    (reduce
+     (fn [g [pid github]]
+       (update-in
+        g [pid] assoc
+        :watchers (+ (get-in g [pid :watchers] 0) (reduce + (map :watchers github)))
+        :forks (+ (get-in g [pid :forks] 0) (reduce + (map :forks github)))))
+     project-graph
+     (for [[pid {:keys [versions]}] project-graph
+           [ver {:keys [github]}] versions
+           :when (seq github)]
+       [pid github])))
+
+  ;; best description/url
+  (def project-graph3
+    (reduce
+     (fn [g [pid best-gh clojars]]
+       (update-in
+        g [pid] assoc
+        :description (or (get best-gh :description) (get clojars :description))
+        :github-url (get best-gh :url)
+        :clojars-url (get clojars :url)))
+     project-graph2
+     (for [[pid {:keys [versions]}] project-graph
+           :when (seq versions)]
+       (let [githubs (for [[ver {:keys [github]}] versions
+                           gh github]
+                       gh)
+             best-gh (if (seq githubs)
+                       (apply max-key :watchers githubs)
+                       {})
+             [_ best-version] (apply max-key (comp count :dependents val) versions)
+             clojars (first (get best-version :clojars))]
+         [pid best-gh clojars]))))
 
   (spit (str (System/getProperty "user.dir") "/resources/project_graph.clj")
-        (prn-str project-graph))
+        (prn-str project-graph3))
   ;; then gzip project_graph.clj
   
   )

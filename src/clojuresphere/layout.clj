@@ -35,54 +35,46 @@
    (include-js "js/jquery.js" "js/main.js")]))
 
 
-(defn project-detail [p]
-  (let [p (-> p name keyword)
-        info (project/info p)
-        node (project/graph p)
-        desc (or (get-in info [:github :description])
-                 (first (get info :description)))
-        dep-count (count (get node :in))
-        watchers (reduce + (map :watchers (get info :github)))
-        forks (reduce + (map :forks (get info :github)))]
+(defn project-detail [pid]
+  (let [pid (-> pid name keyword)
+        node (or (project/graph pid) {})]
     (page
-     (name p)
+     (name pid)
      [:div.project-detail
       ;; TODO: more accurate description
-      [:p.description desc]
-      (when (seq (get info :url))
-        [:p.homepage (link-to (first (get info :url)) "Homepage")])
-      (when (seq (get info :github))
-        [:p.github (link-to (:url (first (get info :github))) "GitHub")])
-      (when-not (zero? watchers)
-        [:p.watchers [:span.label "Watchers"] " " [:span.value watchers]])
-      (when-not (zero? forks)
-        [:p.forks [:span.label "Forks"] " " [:span.value forks]])
+      [:p.description (node :description)]
+      (when (node :github-url)
+        [:p.github (link-to (node :github-url) "GitHub")])
+      (when (node :clojars-url)
+        [:p.github (link-to (node :clojars-url) "Clojars")])
+      (when (node :watchers)
+        [:p.watchers [:span.label "Watchers"] " " [:span.value (node :watchers)]])
+      (when (node :forks)
+        [:p.forks [:span.label "Forks"] " " [:span.value (node :forks)]])
       ;; TODO: dependencies
       ;; TODO: dependents
       ;; TODO: most-used versions
       ])))
 
-(defn project-list [projects]
+(defn project-list [pids]
   [:ul.project-list
-   (for [p projects
-         :let [p (-> p name keyword)
-               info (project/info p)
-               node (project/graph p)
-               dep-count (count (get node :in))
-               watchers (reduce + (map :watchers (get info :github)))
-               forks (reduce + (map :forks (get info :github)))]]
+   (for [pid pids
+         :let [pid (-> pid name keyword)
+               node (or (project/graph pid) {})]]
      [:li
       (link-to
-       (name p)
-       [:span.name (name p)]
+       (name pid)
+       [:span.name (name pid)]
        [:span.stat.dep-count
-        [:span.label "Dependents"] " " [:span.value dep-count]]
+        [:span.label "Dependents"] " " [:span.value (count (node :dependents))]]
        [:span.stat.versions
-        [:span.label "Versions"] " " [:span.value (count (get info :dep))]]
-       (when-not (zero? watchers)
-         [:span.stat.watchers [:span.label "Watchers"] " " [:span.value watchers]])
-       (when-not (zero? forks)
-         [:span.stat.forks [:span.label "Forks"] " " [:span.value forks]]))])
+        [:span.label "Versions"] " " [:span.value (count (node :versions))]]
+       (when (node :watchers)
+         [:span.stat.watchers
+          [:span.label "Watchers"] " "[:span.value (node :watchers)]])
+       (when (node :forks)
+         [:span.stat.forks
+          [:span.label "Forks"] " " [:span.value (node :forks)]]))])
      [:span.clear]])
 
 (defn welcome []
@@ -90,7 +82,7 @@
    nil
    [:div#top-projects
     [:h2 "Top Projects"]
-    (project-list (take 20 (project/most-used)))]
+    (project-list (take 20 project/most-used))]
    [:div#random-projects
     [:h2 "Random Projects"]
     (project-list (repeatedly 20 project/random))]
