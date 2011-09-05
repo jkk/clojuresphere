@@ -15,7 +15,7 @@
        (prn-str (merge {:projects (count project/graph)
                         :memory (memory-stats :gc gc)})))
   (GET "/" [] (layout/welcome))
-  (GET "/:pid" [pid] (layout/project-detail pid))
+  (GET ["/:pid" :pid #"[a-zA-Z0-9\-\.\_]+"] [pid] (layout/project-detail pid))
   (route/resources "/")
   (route/not-found (layout/not-found)))
 
