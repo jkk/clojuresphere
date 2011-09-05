@@ -1,12 +1,10 @@
-(ns clojuresphere.fetcher
+(ns clojuresphere.preprocess
   (:use [clj-github.repos :only [search-repos]]
         [clojure.data.zip.xml :only [xml-> xml1-> text]]
         [clojuresphere.util :only [url-encode]])
   (:require [clojure.xml :as xml]
             [clojure.zip :as zip]
             [clojure.java.io :as io]))
-
-;; TODO: rename ns to "preprocess"
 
 (defn qualify-name [name]
   (let [name (str name)
@@ -42,6 +40,8 @@
 ;; TODO: pom files have a crazy amount of options and can even depend
 ;; on other pom files (see poms for official clojure projects). Decide
 ;; whether it's worth figuring all that out, or if this is good enough.
+;; FIXME: some dependencies use $ variables and that breaks things
+;; (e.g., clojure-slick-rogue dependencies)
 (defn parse-pom-xml [xml]
   (let [z (zip/xml-zip xml)
         group-id (xml1-> z :groupId text)
@@ -133,6 +133,7 @@
 (comment
 
   ;; manual fetching process
+  ;; TODO: clean up and automate this
   
   (def repos (fetch-all-repos))
   
@@ -148,11 +149,12 @@
   (def clojars-projects (read-all-pom-projects
                          "/Users/tin/src/clj/clojuresphere/clojars/"))
 
-  (def project-versions
+  ;; establish versions
+  (defn step1 [g]
     (reduce
      (fn [m [aid dep k info]]
        (update-in m [aid :versions dep k] (fnil conj #{}) info))
-     {}
+     g
      (for [p (concat github-projects clojars-projects)
            :let [dep (apply make-dep (map p [:group-id :artifact-id :version]))
                  p (assoc p :dep dep)]
@@ -161,7 +163,8 @@
            :when info]
        [(-> p :artifact-id keyword) dep k info])))
 
-  (def project-graph
+  ;; connections among nodes & versions
+  (defn step2 [g]
     (reduce
      (fn [g [gid aid ver dep-dep]]
        (let [gid (or gid aid)
@@ -176,28 +179,28 @@
              (update-in [dep-aid :dependents] (fnil conj #{}) aid)
              (update-in [dep-aid :versions dep-dep :dependents]
                         (fnil conj #{}) p-dep))))
-     project-versions
+     g
      (for [p (concat github-projects clojars-projects)
            dep (concat (get p :dependencies) (get p :dev-dependencies))]
        (concat (map p [:group-id :artifact-id :version])
                [dep]))))
 
   ;; total watchers/forks
-  (def project-graph2
+  (defn step3 [g]
     (reduce
      (fn [g [pid github]]
        (update-in
         g [pid] assoc
         :watchers (+ (get-in g [pid :watchers] 0) (reduce + (map :watchers github)))
         :forks (+ (get-in g [pid :forks] 0) (reduce + (map :forks github)))))
-     project-graph
-     (for [[pid {:keys [versions]}] project-graph
+     g
+     (for [[pid {:keys [versions]}] g
            [ver {:keys [github]}] versions
            :when (seq github)]
        [pid github])))
 
   ;; best description/url
-  (def project-graph3
+  (defn step4 [g]
     (reduce
      (fn [g [pid best-gh clojars]]
        (update-in
@@ -205,8 +208,8 @@
         :description (or (get best-gh :description) (get clojars :description))
         :github-url (get best-gh :url)
         :clojars-url (get clojars :url)))
-     project-graph2
-     (for [[pid {:keys [versions]}] project-graph
+     g
+     (for [[pid {:keys [versions]}] g
            :when (seq versions)]
        (let [githubs (for [[ver {:keys [github]}] versions
                            gh github]
@@ -218,8 +221,11 @@
              clojars (first (get best-version :clojars))]
          [pid best-gh clojars]))))
 
+  (def project-graph
+    (-> {} step1 step2 step3 step4))
+  
   (spit (str (System/getProperty "user.dir") "/resources/project_graph.clj")
-        (prn-str project-graph3))
+        (prn-str project-graph))
   ;; then gzip project_graph.clj
   
   )
