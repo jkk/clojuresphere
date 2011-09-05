@@ -79,6 +79,8 @@
                 :pushed (repo :pushed_at)
                 :open-issues (repo :open_issues)}))))
 
+;; TODO: fetch poms from github
+
 ;; clojars
 
 ;; TODO: pom files have a crazy amount of options and can even depend
@@ -128,6 +130,8 @@
   (def clojars-projects (read-all-pom-projects
                          "/Users/tin/src/clj/clojuresphere/clojars/"))
 
+  ;; TODO: associate description/url with particular versions (so we can use the
+  ;; best description)
   (def project-info
     (reduce
      (fn [m [aid k info]]
@@ -145,6 +149,7 @@
         (prn-str project-info))
   ;; then gzip project_info.clj
 
+  ;; TODO: include dev-dependencies
   (def project-graph
     (reduce
      (fn [m [gid aid ver dep-gid dep-aid dep-ver :as edge-info]]

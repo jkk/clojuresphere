@@ -1,22 +1,21 @@
 (ns clojuresphere.core
-  (:use [clojuresphere.util :only [read-gz-resource memory-stats]]
+  (:use [clojuresphere.util :only [memory-stats]]
         [compojure.core :only [defroutes GET POST ANY]]
         [hiccup.middleware :only [wrap-base-url]]
         [ring.util.response :only [response]]
         [ring.middleware.params :only [wrap-params]]
         [ring.adapter.jetty :only [run-jetty]])
   (:require [clojuresphere.layout :as layout]
+            [clojuresphere.project-model :as project]
             [compojure.route :as route]))
-
-(defonce project-info (read-gz-resource "project_info.clj.gz"))
-(defonce project-graph (read-gz-resource "project_graph.clj.gz"))
 
 ;; TODO: project info, search
 (defroutes routes
   (GET "/_stats" {{gc "gc"} :params}
-       (prn-str (merge {:projects (count project-graph)
+       (prn-str (merge {:projects (count project/graph)
                         :memory (memory-stats :gc gc)})))
   (GET "/" [] (layout/welcome))
+  (GET "/:pid" [pid] (layout/project-detail pid))
   (route/resources "/")
   (route/not-found (layout/not-found)))
 
