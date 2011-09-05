@@ -283,12 +283,13 @@ table { border-collapse: collapse; border-spacing: 0; }
 #page-shell {
 }
 #header {
-    background: #555;
+    background: #444;
 }
 #header .inner {
-    width: 900px;
+    width: 830px;
     margin: 0 auto;
-    padding: 20px;
+    padding: 20px 0 20px 80px;
+    background: url(../images/logo.png) 0 10px no-repeat;
 }
 #header h1 {
     margin: 0;
@@ -306,6 +307,16 @@ table { border-collapse: collapse; border-spacing: 0; }
     width: 900px;
     margin: 0 auto;
     padding: 0 20px 20px 20px;
+}
+#content h2 {
+    background: #eee;
+    padding: 0.5em;
+    border-radius: 0.5em;
+    font-weight: normal;
+    border-bottom: 1px solid #ddd;
+}
+#content #page-title {
+    font-weight: bold;
 }
 #content h3 {
     font-size: 1.2em;
@@ -351,10 +362,11 @@ ul.project-list li a {
     width: 208px;
     height: 4em;
     border-radius: 0.5em;
+    border-bottom: 1px solid #eee;
 }
 ul.project-list li a:hover {
     text-decoration: none;
-    background: #eee;
+    background: #def;
 }
 ul.project-list li .name {
     display: block;
@@ -364,17 +376,17 @@ ul.project-list li .name {
     font-weight: bold;
 }
 ul.project-list li .stat {
-    margin: 0 2em 0.25em 0;
+    margin: 0 3em 0.25em 0;
     padding: 0;
     color: #888;
     float: left;
     font-size: 0.85em;
     width: 90px;
-    border-bottom: 1px dotted #ddd;
+    text-transform: lowercase;
 }
 ul.project-list li .versions, ul.project-list li .forks {
     margin-right: 0;
-    width: 80px;
+    width: 70px;
 }
 ul.project-list li .stat .label {
     color: #aaa;
