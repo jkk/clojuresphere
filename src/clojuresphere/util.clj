@@ -1,5 +1,6 @@
 (ns clojuresphere.util
-  (:require [clojure.java.io :as io]))
+  (:require [clojure.java.io :as io]
+            [clj-json.core :as json]))
 
 (defn memory-stats [& {:keys [gc]}]
   "Return stats about memory availability and usage, in MB. Calls
@@ -33,3 +34,16 @@
                      io/reader
                      java.io.PushbackReader.)]
     (read in)))
+
+(defn json-resp
+  [data]
+  {:status 200
+   :headers {"Content-type" "application/json"}
+   :body (json/generate-string data)})
+
+(defn json-parse [str]
+  (try
+    (json/parse-string str)
+    (catch Exception e
+      nil)))
+
