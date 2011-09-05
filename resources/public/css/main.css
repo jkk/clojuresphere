@@ -396,3 +396,85 @@ ul.project-list li .stat .value {
     color: #666;
     float: right;
 }
+
+.project-detail .overview {
+    padding: 0 0.5em 1em 0.5em;
+    border-bottom: 1px solid #ddd;
+}
+.project-detail .description {
+    font-size: 1.1em;
+}
+.project-detail .github, .project-detail .clojars,
+.project-detail .watchers, .project-detail .forks {
+    float: left;
+    margin: 0 1em 0 0;
+    padding: 0 1em 0 0;
+    border-right: 1px solid #ddd;
+    color: #aaa;
+}
+.project-detail .value {
+    color: #888;
+}
+.none {
+    margin: 1em;
+    color: #aaa;
+}
+.project-detail h3 .count {
+    font-size: 0.75em;
+    font-weight: normal;
+    color: #888;
+    margin: 0 0 0 0.5em;
+}
+ul.dep-list {
+    margin: 0;
+    padding: 0;
+    list-style-type: none;
+}
+ul.dep-list li a {
+    float: left;
+    height: 1.3em;
+    background: #f8f8f8;
+    padding: 5px 10px;
+    width: 200px;
+    margin: 0 5px 0.25em 0;
+    border-radius: 5px;
+    border-bottom: 1px solid #eee;
+}
+ul.dep-list li a:hover {
+    background: #def;
+    text-decoration: none;
+}
+ul.version-list {
+    margin: 1em 0;
+    padding: 0;
+    list-style-type: none;
+}
+ul.version-list li a {
+    float: left;
+    background: #f8f8f8;
+    width: 425px;
+    padding: 5px 10px;
+    margin: 0 5px 0.25em 0;
+    border-radius: 5px;
+    border-bottom: 1px solid #eee;
+}
+ul.version-list li a:hover {
+    background: #def;
+    text-decoration: none;
+}
+ul.version-list li .version {
+    float: left;
+    max-width: 380px;
+    overflow: hidden;
+    height: 1.2em;
+}
+ul.version-list li .count {
+    float: right;
+    color: #888;
+}
+ul.version-list .version .vname {
+    color: #888;
+    margin: 0 0 0 0.5em;
+}
+ul.version-list .version .vver {
+}

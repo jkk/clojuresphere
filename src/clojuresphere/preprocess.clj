@@ -1,17 +1,10 @@
 (ns clojuresphere.preprocess
   (:use [clj-github.repos :only [search-repos]]
         [clojure.data.zip.xml :only [xml-> xml1-> text]]
-        [clojuresphere.util :only [url-encode]])
+        [clojuresphere.util :only [url-encode qualify-name]])
   (:require [clojure.xml :as xml]
             [clojure.zip :as zip]
             [clojure.java.io :as io]))
-
-(defn qualify-name [name]
-  (let [name (str name)
-        name-parts (.split name "/")]
-    (if (= 2 (count name-parts))
-      name-parts
-      [name name])))
 
 ;; I'm not sure what to call a [group artifact version] vector,
 ;; so I call it a "dep".

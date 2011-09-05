@@ -2,6 +2,13 @@
   (:require [clojure.java.io :as io]
             [clj-json.core :as json]))
 
+(defn qualify-name [name]
+  (let [name (str name)
+        name-parts (.split name "/")]
+    (if (= 2 (count name-parts))
+      name-parts
+      [name name])))
+
 (defn memory-stats [& {:keys [gc]}]
   "Return stats about memory availability and usage, in MB. Calls
   System/gc before gathering stats when the :gc option is true."

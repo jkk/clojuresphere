@@ -11,3 +11,6 @@
 (defn random []
   (rand-nth most-used))
 
+(defn most-used-versions [pid]
+  (let [versions (get-in graph [pid :versions])]
+    (sort-by (comp count :dependents val) > versions)))
