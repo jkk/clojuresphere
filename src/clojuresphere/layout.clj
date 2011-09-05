@@ -41,7 +41,7 @@
         node (project/graph p)
         desc (or (get-in info [:github :description])
                  (first (get info :description)))
-        dep-count (count (node :in))
+        dep-count (count (get node :in))
         watchers (reduce + (map :watchers (get info :github)))
         forks (reduce + (map :forks (get info :github)))]
     (page
@@ -68,7 +68,7 @@
          :let [p (-> p name keyword)
                info (project/info p)
                node (project/graph p)
-               dep-count (count (node :in))
+               dep-count (count (get node :in))
                watchers (reduce + (map :watchers (get info :github)))
                forks (reduce + (map :forks (get info :github)))]]
      [:li
