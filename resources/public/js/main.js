@@ -7,21 +7,25 @@ $(function() {
             $("#top-projects ul").replaceWith(data);
         });
         if (topOffset > 0)
-            $("p.nav a.prev").removeClass("inactive");
+            $("#top-projects p.nav a.prev").removeClass("inactive");
         else
-            $("p.nav a.prev").addClass("inactive");
+            $("#top-projects p.nav a.prev").addClass("inactive");
     }
 
-    $("p.nav a.next").click(function() {
+    $("#top-projects p.nav a.next").click(function() {
         topOffset += 20;
         refreshTop();
         return false;
     });
-    $("p.nav a.prev").click(function() {
+    $("#top-projects p.nav a.prev").click(function() {
         topOffset -= 20;
         if (topOffset < 0)
             topOffset = 0;
         refreshTop();
+        return false;
+    });
+
+    $("a.inactive").click(function() {
         return false;
     });
 

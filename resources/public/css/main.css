@@ -290,6 +290,19 @@ table { border-collapse: collapse; border-spacing: 0; }
     margin: 0 auto;
     padding: 20px 0 20px 80px;
     background: url(../images/logo.png) 0 10px no-repeat;
+    position: relative;
+}
+#header .inner form {
+    position: absolute;
+    top: 40px;
+    right: 2em;
+}
+#header .inner form input[type=submit] {
+    background: #777;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    padding: 5px 10px;
 }
 #header h1 {
     margin: 0;
@@ -309,7 +322,7 @@ table { border-collapse: collapse; border-spacing: 0; }
     margin: 0 auto;
     padding: 0 20px 20px 20px;
 }
-#content h2 {
+#content h2, #content #search-results #page-title {
     clear: both;
     background: #e8e8e8;
     color: #333;
@@ -324,7 +337,7 @@ table { border-collapse: collapse; border-spacing: 0; }
 }
 #content #page-title {
     font-weight: bold;
-    margin: 1em 0 0 0;
+    margin: 1em 0 1em 0;
 }
 #content h3 {
     font-size: 1.2em;
@@ -412,8 +425,6 @@ ul.project-list li .stat .value {
 }
 .project-detail .description {
     font-size: 1.1em;
-    margin: 0 0 1em 0;
-    padding: 1em 0 0 0;
 }
 .project-detail .github, .project-detail .clojars,
 .project-detail .watchers, .project-detail .forks {

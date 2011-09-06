@@ -14,3 +14,10 @@
 (defn most-used-versions [pid]
   (let [versions (get-in graph [pid :versions])]
     (sort-by (comp count :dependents val) > versions)))
+
+(defn find-projects [query]
+  (let [query-re (re-pattern (str "(?i)" (or query "")))]
+    (for [[pid pinfo] graph
+          :when (some #(when % (re-find query-re %))
+                      [(name pid) (pinfo :description)])]
+      pid)))
