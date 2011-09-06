@@ -1,0 +1,1 @@
+web: lein run -m clojuresphere.core
