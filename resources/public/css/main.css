@@ -297,6 +297,7 @@ table { border-collapse: collapse; border-spacing: 0; }
 }
 #header h1 a {
     color: #fff;
+    text-shadow: #000 1px 1px 0;
 }
 #tagline {
     font-size: 1.1;
@@ -309,7 +310,9 @@ table { border-collapse: collapse; border-spacing: 0; }
     padding: 0 20px 20px 20px;
 }
 #content h2 {
-    background: #eee;
+    clear: both;
+    background: #e8e8e8;
+    color: #333;
     padding: 0.5em;
     border-radius: 0.5em;
     font-weight: normal;
@@ -317,6 +320,7 @@ table { border-collapse: collapse; border-spacing: 0; }
 }
 #content #page-title {
     font-weight: bold;
+    margin: 1em 0 0 0;
 }
 #content h3 {
     font-size: 1.2em;
@@ -367,6 +371,7 @@ ul.project-list li a {
 ul.project-list li a:hover {
     text-decoration: none;
     background: #def;
+    border-bottom: 1px solid #cdf;
 }
 ul.project-list li .name {
     display: block;
@@ -399,10 +404,12 @@ ul.project-list li .stat .value {
 
 .project-detail .overview {
     padding: 0 0.5em 1em 0.5em;
-    border-bottom: 1px solid #ddd;
+    border-bottom: 2px solid #ddd;
 }
 .project-detail .description {
     font-size: 1.1em;
+    margin: 0 0 1em 0;
+    padding: 1em 0 0 0;
 }
 .project-detail .github, .project-detail .clojars,
 .project-detail .watchers, .project-detail .forks {
@@ -442,6 +449,7 @@ ul.dep-list li a {
 }
 ul.dep-list li a:hover {
     background: #def;
+    border-bottom: 1px solid #cdf;
     text-decoration: none;
 }
 ul.dep-list.ver li a {
@@ -463,6 +471,7 @@ ul.version-list li a {
 }
 ul.version-list li a:hover {
     background: #def;
+    border-bottom: 1px solid #cdf;
     text-decoration: none;
 }
 ul.version-list li .version {
@@ -480,4 +489,34 @@ ul.version-list .version .vname {
     margin: 0 0 0 0.5em;
 }
 ul.version-list .version .vver {
+}
+p.refresh a, p.nav a {
+    float: right;
+    margin: 0 2em 1em 0;
+}
+a.button {
+    padding: 5px 10px;
+    background: #cdf;
+    border-radius: 5px;
+    background: #35d;
+    color: #fff;
+}
+a.button.inactive {
+    background: #888;
+    color: #ddd;
+}
+a.button:hover {
+    background: #24c;
+    color: #fff;
+    text-decoration: none;
+}
+a.button.inactive:hover {
+    background: #888;
+    color: #ddd;
+}
+a.next {
+    padding: 5px 20px;
+}
+a.button.prev {
+    margin-right: 1em;
 }

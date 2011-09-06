@@ -68,3 +68,5 @@
     (catch Exception e
       nil)))
 
+(defn parse-int [x & [default]]
+  (try (Integer/valueOf x) (catch Exception _ default)))

@@ -2,7 +2,7 @@
   (:use [clojuresphere.util :only [url-encode qualify-name make-dep]]
         [hiccup.page-helpers :only [html5 include-js include-css
                                     javascript-tag link-to]]
-        [hiccup.core :only [h *base-url*]])
+        [hiccup.core :only [h *base-url* html]])
   (:require [clojuresphere.project-model :as project]))
 
 (def site-name "ClojureSphere")
@@ -74,6 +74,7 @@
               [:span.version
                [:span.vver (h (or vver "[none]"))]
                [:span.vname (h (str vname))]]
+              ;; TODO: count only unique artifact ids?
               [:span.count (count (vinfo :dependents))])])
           [:span.clear]])]
       [:div.dependents
@@ -124,6 +125,7 @@
             [:span.clear]])]]))))
 
 (defn project-list [pids]
+  (html
   [:ul.project-list
    (for [pid pids
          :let [pid (-> pid name keyword)
@@ -142,18 +144,21 @@
        (when (node :forks)
          [:span.stat.forks
           [:span.label "Forks"] " " [:span.value (node :forks)]]))])
-     [:span.clear]])
+     [:span.clear]]))
 
 (defn welcome []
   (page
    nil
    [:div#top-projects
     [:h2 "Top Projects"]
-    (project-list (take 20 project/most-used))]
+    (project-list (take 20 project/most-used))
+    [:p.nav
+     [:a.button.next {:href "#"} "Next"]
+     [:a.button.prev.inactive {:href "#"} "Previous"]]]
    [:div#random-projects
     [:h2 "Random Projects"]
-    (project-list (repeatedly 20 project/random))]
-   ;; TODO: prev/next nav buttons
+    (project-list (repeatedly 20 project/random))
+    [:p.refresh [:a.button {:href "#"} "Refresh"]]]
    ;; TODO: stats (total # projects)
    ))
 
