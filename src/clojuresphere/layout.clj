@@ -63,7 +63,7 @@
           [:span.clear]])]
       [:div.versions
        [:h3 "Versions " [:span.count (count (node :versions))]]
-       (if (zero? (count (node :dependents)))
+       (if (zero? (count (node :versions)))
          [:p.none "None"]
          [:ul.version-list
           (for [[[vname vver] vinfo] (project/most-used-versions pid)
