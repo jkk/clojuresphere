@@ -1,5 +1,5 @@
 (ns clojuresphere.layout
-  (:use [clojuresphere.util :only [url-encode qualify-name make-dep]]
+  (:use [clojuresphere.util :only [url-encode qualify-name qualify-dep make-dep]]
         [hiccup.page-helpers :only [html5 include-js include-css
                                     javascript-tag link-to url]]
         [hiccup.form-helpers :only [form-to submit-button]]
