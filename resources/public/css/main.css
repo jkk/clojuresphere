@@ -316,7 +316,11 @@ table { border-collapse: collapse; border-spacing: 0; }
     padding: 0.5em;
     border-radius: 0.5em;
     font-weight: normal;
-    border-bottom: 1px solid #ddd;
+    border: 1px solid #eee;
+    border-bottom: 1px solid #d8d8d8;
+    background: #e8e8e8;
+    background: #e8e8e8 -webkit-gradient(linear, left top, 0 50, from(#f8f8f8), to(#e8e8e8)) no-repeat;
+    background: -moz-linear-gradient(top,#f8f8f8,#e8e8e8 50px);
 }
 #content #page-title {
     font-weight: bold;
