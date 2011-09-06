@@ -13,7 +13,7 @@
 ;; so I call it a "dep".
 (defn qualify-dep [[name version]]
   (let [[gid aid] (qualify-name name)]
-    [gid aid version]))
+    [gid aid (str version)]))
 
 (defn make-dep
   ([name version]
@@ -21,7 +21,7 @@
        (make-dep gid aid version)))
   ([group-id artifact-id version]
      (let [group-id (or group-id artifact-id)]
-       [(symbol (str group-id "/" artifact-id)) version])))
+       [(symbol (str group-id "/" artifact-id)) (str version)])))
 
 (defn memory-stats [& {:keys [gc]}]
   "Return stats about memory availability and usage, in MB. Calls
