@@ -363,6 +363,10 @@ table { border-collapse: collapse; border-spacing: 0; }
 #footer a {
     color: #888;
 }
+#footer #stats {
+    float: right;
+    margin: 0 2em 0 0;
+}
 
 .clear {
     display: block;

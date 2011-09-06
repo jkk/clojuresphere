@@ -4,7 +4,8 @@
                                     javascript-tag link-to url]]
         [hiccup.form-helpers :only [form-to submit-button]]
         [hiccup.core :only [h *base-url* html]])
-  (:require [clojuresphere.project-model :as project]))
+  (:require [clojuresphere.project-model :as project]
+            [clojure.java.io :as io]))
 
 (def site-name "ClojureSphere")
 
@@ -24,7 +25,7 @@
        (form-to [:get "/_search"]
                 [:input {:name "query" :size 30 :id "query"
                          :type "search" :placeholder "Search"}] " "
-                (submit-button "Go"))]]
+                         (submit-button "Go"))]]
      [:div#content-shell
       [:div#content
        (when title
@@ -33,11 +34,10 @@
      [:div#footer
       [:p#links (link-to "http://github.com/jkk/clojuresphere" "GitHub")]
       [:p#copyright "Made by " (link-to "http://jkkramer.com" "Justin Kramer")]
-      ;; TODO: show last updated
-      ]]
-    (javascript-tag
-    (str "var CS = {baseUrl: \"" *base-url* "\"};"))
-   (include-js "/js/jquery.js" "/js/main.js")]))
+      [:p#stats (str (count project/graph) " projects indexed "
+                     (-> project/graph-data-file
+                         io/resource io/file .lastModified (java.util.Date.)))]]]
+    (include-js "/js/jquery.js" "/js/main.js")]))
 
 ;; TODO: break this up into manageable pieces
 (defn project-detail [pid]
@@ -163,9 +163,7 @@
    [:div#random-projects
     [:h2 "Random Projects"]
     (project-list (repeatedly 20 project/random))
-    [:p.refresh [:a.button {:href "#"} "Refresh"]]]
-   ;; TODO: stats (total # projects)
-   ))
+    [:p.refresh [:a.button {:href "#"} "Refresh"]]]))
 
 (defn neg-guard [x]
   (if (neg? x) 0 x))

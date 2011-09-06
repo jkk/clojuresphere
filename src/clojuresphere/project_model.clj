@@ -3,7 +3,8 @@
 
 ;; we don't need no stinkin database
 
-(defonce graph (read-gz-resource "project_graph.clj.gz"))
+(def graph-data-file "project_graph.clj.gz")
+(defonce graph (read-gz-resource graph-data-file))
 (defonce most-used (->> graph
                         (sort-by (comp count :dependents val) >)
                         keys vec))

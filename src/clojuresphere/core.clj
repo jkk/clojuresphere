@@ -9,7 +9,6 @@
             [clojuresphere.project-model :as project]
             [compojure.route :as route]))
 
-;; TODO: search
 (defroutes routes
 
   (GET "/_stats" {{gc "gc"} :params}
