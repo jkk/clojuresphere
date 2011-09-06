@@ -149,6 +149,7 @@
        (let [gid (or gid aid)
              p-dep (make-dep gid aid ver)
              [dep-gid dep-aid dep-ver] (qualify-dep dep-dep)
+             dep-dep (make-dep dep-gid dep-aid dep-ver)
              aid (keyword aid)
              dep-aid (keyword dep-aid)]
          (-> g
