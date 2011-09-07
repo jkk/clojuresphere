@@ -83,9 +83,10 @@
         [:div.dependents
          [:h3 "Dependents (current and past) "
           [:span.count (count (node :dependents))]]
-         (if (zero? (count (node :dependents)))
-           [:p.none "None"]
-           [:ul.dep-list.clearfix
+         (cond
+           (= "clojure" (name pid)) [:p.everything "Everything ;-)"]
+           (zero? (count (node :dependents))) [:p.none "None"]
+           :else [:ul.dep-list.clearfix
             (for [dep (sort (node :dependents))]
               [:li (link-to (name dep) (h (name dep)))])])]]))))
 
