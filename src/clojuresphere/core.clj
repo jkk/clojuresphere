@@ -4,7 +4,7 @@
         [hiccup.middleware :only [wrap-base-url]]
         [ring.util.response :only [response]]
         [ring.middleware.params :only [wrap-params]]
-        [ring.adapter.jetty :only [run-jetty]])
+        [ring.adapter.jetty7 :only [run-jetty]])
   (:require [clojuresphere.layout :as layout]
             [clojuresphere.project-model :as project]
             [compojure.route :as route]))

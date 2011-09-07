@@ -12,8 +12,6 @@
    ========================================================================== */
 
 article, aside, details, figcaption, figure, footer, header, hgroup, nav, section { display: block; }
-audio[controls], canvas, video { display: inline-block; *display: inline; *zoom: 1; }
-
 
 /* =============================================================================
    Base
@@ -189,96 +187,11 @@ textarea { overflow: auto; vertical-align: top; }
 /* Colors for form validity */
 input:valid, textarea:valid {  }
 input:invalid, textarea:invalid { background-color: #f0dddd; }
-
-
-/* =============================================================================
-   Tables
-   ========================================================================== */
-
 table { border-collapse: collapse; border-spacing: 0; }
-
 
 /* =============================================================================
    Primary styles
-   Author: 
    ========================================================================== */
-
-
-
-
-
-
-
-
-/* =============================================================================
-   Non-semantic helper classes
-   Please define your styles before this section.
-   ========================================================================== */
-
-/* For image replacement */
-.ir { display: block; text-indent: -999em; overflow: hidden; background-repeat: no-repeat; text-align: left; direction: ltr; }
-.ir br { display: none; }
-
-/* Hide for both screenreaders and browsers:
-   css-discuss.incutio.com/wiki/Screenreader_Visibility */
-.hidden { display: none; visibility: hidden; }
-
-/* Hide only visually, but have it available for screenreaders: by Jon Neal.
-  www.webaim.org/techniques/css/invisiblecontent/  &  j.mp/visuallyhidden */
-.visuallyhidden { border: 0; clip: rect(0 0 0 0); height: 1px; margin: -1px; overflow: hidden; padding: 0; position: absolute; width: 1px; }
-
-/* Extends the .visuallyhidden class to allow the element to be focusable when navigated to via the keyboard: drupal.org/node/897638 */
-.visuallyhidden.focusable:active, .visuallyhidden.focusable:focus { clip: auto; height: auto; margin: 0; overflow: visible; position: static; width: auto; }
-
-/* Hide visually and from screenreaders, but maintain layout */
-.invisible { visibility: hidden; }
-
-/* Contain floats: nicolasgallagher.com/micro-clearfix-hack/ */ 
-.clearfix:before, .clearfix:after { content: ""; display: table; }
-.clearfix:after { clear: both; }
-.clearfix { zoom: 1; }
-
-
-
-/* =============================================================================
-   PLACEHOLDER Media Queries for Responsive Design.
-   These override the primary ('mobile first') styles
-   Modify as content requires.
-   ========================================================================== */
-
-@media only screen and (min-width: 480px) {
-  /* Style adjustments for viewports 480px and over go here */
-
-}
-
-@media only screen and (min-width: 768px) {
-  /* Style adjustments for viewports 768px and over go here */
-
-}
-
-
-/* =============================================================================
-   Print styles.
-   Inlined to avoid required HTTP connection: www.phpied.com/delay-loading-your-print-css/
-   ========================================================================== */
- 
-@media print {
-  * { background: transparent !important; color: black !important; text-shadow: none !important; filter:none !important; -ms-filter: none !important; } /* Black prints faster: sanbeiji.com/archives/953 */
-  a, a:visited { color: #444 !important; text-decoration: underline; }
-  a[href]:after { content: " (" attr(href) ")"; }
-  abbr[title]:after { content: " (" attr(title) ")"; }
-  .ir a:after, a[href^="javascript:"]:after, a[href^="#"]:after { content: ""; }  /* Don't show links for images, or javascript/internal links */
-  pre, blockquote { border: 1px solid #999; page-break-inside: avoid; }
-  thead { display: table-header-group; } /* css-discuss.incutio.com/wiki/Printing_Tables */
-  tr, img { page-break-inside: avoid; }
-  img { max-width: 100% !important; }
-  @page { margin: 0.5cm; }
-  p, h2, h3 { orphans: 3; widows: 3; }
-  h2, h3{ page-break-after: avoid; }
-}
-
-
-
 
 #page-shell {
 }
@@ -286,16 +199,10 @@ table { border-collapse: collapse; border-spacing: 0; }
     background: #444;
 }
 #header .inner {
-    width: 830px;
     margin: 0 auto;
     padding: 20px 0 20px 80px;
     background: url(../images/logo.png) 0 10px no-repeat;
     position: relative;
-}
-#header .inner form {
-    position: absolute;
-    top: 40px;
-    right: 2em;
 }
 #header .inner form input[type=submit] {
     background: #777;
@@ -318,8 +225,8 @@ table { border-collapse: collapse; border-spacing: 0; }
     margin: 0.25em 0 0 0;
 }
 #content {
-    width: 900px;
     margin: 0 auto;
+    text-align: center;
     padding: 0 20px 20px 20px;
 }
 #content h2, #content #search-results #page-title {
@@ -343,18 +250,16 @@ table { border-collapse: collapse; border-spacing: 0; }
     font-size: 1.2em;
 }
 #footer {
-    width: 900px;
     margin: 2em auto;
-    padding: 1em 0 4em 0;
+    padding: 0.2em 0.5em 0.8em;
     border-top: 2px solid #aaa;
 }
 #footer p {
     color: #aaa;
-    float: left;
+    width: 100%;
+    text-align: center;
 }
 #footer #links {
-    margin: 0 1em 0 0;
-    padding: 0 1em 0 0;
     border-right: 1px solid #ddd;
 }
 #footer #copyright {
@@ -362,15 +267,6 @@ table { border-collapse: collapse; border-spacing: 0; }
 }
 #footer a {
     color: #888;
-}
-#footer #stats {
-    float: right;
-    margin: 0 2em 0 0;
-}
-
-.clear {
-    display: block;
-    clear: both;
 }
 
 ul.project-list {
@@ -380,10 +276,10 @@ ul.project-list {
 }
 ul.project-list li a {
     list-style-type: none;
-    margin: 0 5px 5px 0;
-    float: left;
+    display: block;
+    margin: 0 auto 5px;
     background: #f8f8f8;
-    padding: 0.5em 0 0.5em 0.75em;
+    padding: 0.5em 0 0.5em 10px;
     width: 208px;
     height: 4em;
     border-radius: 0.5em;
@@ -441,7 +337,7 @@ ul.project-list li .stat .value {
 .project-detail .value {
     color: #888;
 }
-.none {
+.none, .everything {
     margin: 1em;
     color: #aaa;
 }
@@ -461,7 +357,6 @@ ul.dep-list li a {
     height: 1.3em;
     background: #f8f8f8;
     padding: 5px 10px;
-    width: 200px;
     margin: 0 5px 0.25em 0;
     border-radius: 5px;
     border-bottom: 1px solid #eee;
@@ -472,7 +367,7 @@ ul.dep-list li a:hover {
     text-decoration: none;
 }
 ul.dep-list.ver li a {
-    width: 420px;
+    width: 100%;
 }
 ul.version-list {
     margin: 1em 0;
@@ -482,7 +377,10 @@ ul.version-list {
 ul.version-list li a {
     float: left;
     background: #f8f8f8;
-    width: 425px;
+    width: 100%;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
     padding: 5px 10px;
     margin: 0 5px 0.25em 0;
     border-radius: 5px;
@@ -538,4 +436,98 @@ a.next {
 }
 a.button.prev {
     margin-right: 1em;
+}
+
+/* =============================================================================
+   Non-semantic helper classes
+   Please define your styles before this section.
+   ========================================================================== */
+
+/* Contain floats: nicolasgallagher.com/micro-clearfix-hack/ */ 
+.clearfix:before, .clearfix:after { content: ""; display: table; }
+.clearfix:after { clear: both; }
+.clearfix { zoom: 1; }
+
+
+/* =============================================================================
+   PLACEHOLDER Media Queries for Responsive Design.
+   These override the primary ('mobile first') styles
+   Modify as content requires.
+   ========================================================================== */
+
+@media only screen and (min-width: 480px) {
+    ul.project-list {
+        margin: 0 auto;
+        width: 450px;
+    }
+    ul.project-list li a {
+        margin: 0 5px 5px 0;
+        float: left;
+    }
+}
+
+@media only screen and (min-width: 940px) {
+    #header .inner form {
+        position: absolute;
+        top: 40px;
+        right: 2em;
+    }
+    #header .inner {
+        width: 830px;
+    }
+    #content {
+        width: 900px;
+    }
+    ul.project-list {
+        width: auto;
+    }
+    ul.dep-list li a {
+        width: 200px;
+    }
+    ul.version-list li a {
+        max-width: 425px;
+    }
+    ul.version-list li a {
+        -webkit-box-sizing: content-box;
+        -moz-box-sizing: content-box;
+        box-sizing: content-box;
+    }
+    #footer p {
+        text-align: left;
+        width: auto;
+        float: left;
+    }
+    #footer {
+        width: 900px;
+        padding: 1em 0 4em;
+    }
+    #footer #links {
+        margin: 0 1em 0 0;
+        padding: 0 1em 0 0;
+    }
+    #footer #stats {
+        float: right;
+        margin: 0 2em 0 0;
+    }
+}
+
+
+/* =============================================================================
+   Print styles.
+   Inlined to avoid required HTTP connection: www.phpied.com/delay-loading-your-print-css/
+   ========================================================================== */
+ 
+@media print {
+  * { background: transparent !important; color: black !important; text-shadow: none !important; filter:none !important; -ms-filter: none !important; } /* Black prints faster: sanbeiji.com/archives/953 */
+  a, a:visited { color: #444 !important; text-decoration: underline; }
+  a[href]:after { content: " (" attr(href) ")"; }
+  abbr[title]:after { content: " (" attr(title) ")"; }
+  .ir a:after, a[href^="javascript:"]:after, a[href^="#"]:after { content: ""; }  /* Don't show links for images, or javascript/internal links */
+  pre, blockquote { border: 1px solid #999; page-break-inside: avoid; }
+  thead { display: table-header-group; } /* css-discuss.incutio.com/wiki/Printing_Tables */
+  tr, img { page-break-inside: avoid; }
+  img { max-width: 100% !important; }
+  @page { margin: 0.5cm; }
+  p, h2, h3 { orphans: 3; widows: 3; }
+  h2, h3{ page-break-after: avoid; }
 }

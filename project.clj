@@ -7,4 +7,4 @@
                  [hiccup "0.3.6"]
                  [clj-json "0.3.2"]
                  [ring/ring-core "0.3.11"]
-                 [ring/ring-jetty-adapter "0.3.11"]])
+                 [org.signaut/ring-jetty7-adapter "0.3.11.2"]])
