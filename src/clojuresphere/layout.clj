@@ -97,7 +97,7 @@
 
 (defn dep-url [dep]
   (let [[gid aid ver] (qualify-dep dep)]
-    (str "/" (url-encode gid) "/" (url-encode aid) "/" (url-encode ver))))
+    (str "/" (url-encode aid) "/" (url-encode gid) "/" (url-encode ver))))
 
 (defn project-version-detail [gid aid ver]
   (let [dep (make-dep gid aid ver)
