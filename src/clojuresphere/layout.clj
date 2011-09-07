@@ -59,7 +59,8 @@
            [:p.forks [:span.label "Forks"] " " [:span.value (node :forks)]])
          [:div.clear]]
         [:div.dependencies
-         [:h3 "Dependencies (any version) " [:span.count (count (node :dependencies))]]
+         [:h3 "Dependencies (current and past) "
+          [:span.count (count (node :dependencies))]]
          (if (zero? (count (node :dependencies)))
            [:p.none "None"]
            [:ul.dep-list
@@ -83,7 +84,8 @@
                 [:span.count (count (vinfo :dependents))])])
             [:span.clear]])]
         [:div.dependents
-         [:h3 "Dependents (any version) " [:span.count (count (node :dependents))]]
+         [:h3 "Dependents (current and past) "
+          [:span.count (count (node :dependents))]]
          (if (zero? (count (node :dependents)))
            [:p.none "None"]
            [:ul.dep-list
