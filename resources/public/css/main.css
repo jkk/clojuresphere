@@ -284,7 +284,7 @@ ul.project-list li a {
     display: block;
     margin: 0 auto 5px;
     background: #f8f8f8;
-    padding: 0.5em 0 0.5em 0.75em;
+    padding: 0.5em 0 0.5em 10px;
     width: 208px;
     height: 4em;
     border-radius: 0.5em;
@@ -463,7 +463,7 @@ a.button.prev {
 @media only screen and (min-width: 480px) {
     ul.project-list {
         margin: 0 auto;
-        width: 445px;
+        width: 450px;
     }
     ul.project-list li a {
         margin: 0 5px 5px 0;
