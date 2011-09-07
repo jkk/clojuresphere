@@ -47,7 +47,7 @@
       (page
        (name pid)
        [:div.project-detail
-        [:div.overview
+        [:div.overview.clearfix
          [:p.description (node :description)]
          (when (node :github-url)
            [:p.github (link-to (node :github-url) "GitHub")])
@@ -56,22 +56,20 @@
          (when (node :watchers)
            [:p.watchers [:span.label "Watchers"] " " [:span.value (node :watchers)]])
          (when (node :forks)
-           [:p.forks [:span.label "Forks"] " " [:span.value (node :forks)]])
-         [:div.clear]]
+           [:p.forks [:span.label "Forks"] " " [:span.value (node :forks)]])]
         [:div.dependencies
          [:h3 "Dependencies (current and past) "
           [:span.count (count (node :dependencies))]]
          (if (zero? (count (node :dependencies)))
            [:p.none "None"]
-           [:ul.dep-list
+           [:ul.dep-list.clearfix
             (for [dep (node :dependencies)]
-              [:li (link-to (name dep) (h (name dep)))])
-            [:span.clear]])]
+              [:li (link-to (name dep) (h (name dep)))])])]
         [:div.versions
          [:h3 "Versions " [:span.count (count (node :versions))]]
          (if (zero? (count (node :versions)))
            [:p.none "None"]
-           [:ul.version-list
+           [:ul.version-list.clearfix
             (for [[[vname vver] vinfo] (project/most-used-versions pid)
                   :let [[gid aid] (qualify-name vname)]]
               [:li
@@ -81,17 +79,15 @@
                  [:span.vver (h (or vver "[none]"))]
                  [:span.vname (h (str vname))]]
                 ;; TODO: count only unique artifact ids?
-                [:span.count (count (vinfo :dependents))])])
-            [:span.clear]])]
+                [:span.count (count (vinfo :dependents))])])])]
         [:div.dependents
          [:h3 "Dependents (current and past) "
           [:span.count (count (node :dependents))]]
          (if (zero? (count (node :dependents)))
            [:p.none "None"]
-           [:ul.dep-list
+           [:ul.dep-list.clearfix
             (for [dep (sort (node :dependents))]
-              [:li (link-to (name dep) (h (name dep)))])
-            [:span.clear]])]]))))
+              [:li (link-to (name dep) (h (name dep)))])])]]))))
 
 (defn render-dep [dep]
   (let [[name ver] (apply make-dep dep)]
@@ -109,31 +105,28 @@
       (page
        (render-dep dep)
        [:div.project-detail
-        [:div.overview
+        [:div.overview.clearfix
          [:p.description "Main project: " (link-to (str "/" (url-encode (name aid)))
-                                                   (name aid))]
+                                                   (name aid))]]
          ;; TODO: show github/clojars links
-         [:div.clear]]
         [:div.dependencies
          [:h3 "Dependencies " [:span.count (count (node :dependencies))]]
          (if (zero? (count (node :dependencies)))
            [:p.none "None"]
-           [:ul.dep-list.ver
+           [:ul.dep-list.ver.clearfix
             (for [dep (node :dependencies)]
-              [:li (link-to (dep-url dep) (h (render-dep dep)))])
-            [:span.clear]])]
+              [:li (link-to (dep-url dep) (h (render-dep dep)))])])]
         [:div.dependents
          [:h3 "Dependents " [:span.count (count (node :dependents))]]
          (if (zero? (count (node :dependents)))
            [:p.none "None"]
-           [:ul.dep-list.ver
+           [:ul.dep-list.ver.clearfix
             (for [dep (sort (node :dependents))]
-              [:li (link-to (dep-url dep) (h (render-dep dep)))])
-            [:span.clear]])]]))))
+              [:li (link-to (dep-url dep) (h (render-dep dep)))])])]]))))
 
 (defn project-list [pids]
   (html
-  [:ul.project-list
+  [:ul.project-list.clearfix
    (for [pid pids
          :let [pid (-> pid name keyword)
                node (or (project/graph pid) {})]]
@@ -150,8 +143,7 @@
           [:span.label "Watchers"] " "[:span.value (node :watchers)]])
        (when (node :forks)
          [:span.stat.forks
-          [:span.label "Forks"] " " [:span.value (node :forks)]]))])
-     [:span.clear]]))
+          [:span.label "Forks"] " " [:span.value (node :forks)]]))])]))
 
 (defn welcome []
   (page

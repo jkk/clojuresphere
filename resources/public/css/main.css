@@ -269,11 +269,6 @@ table { border-collapse: collapse; border-spacing: 0; }
     color: #888;
 }
 
-.clear {
-    display: block;
-    clear: both;
-}
-
 ul.project-list {
     list-style-type: none;
     margin: 0;
