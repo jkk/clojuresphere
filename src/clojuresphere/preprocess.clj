@@ -1,7 +1,8 @@
 (ns clojuresphere.preprocess
   (:use [clj-github.repos :only [search-repos]]
         [clojure.data.zip.xml :only [xml-> xml1-> text]]
-        [clojuresphere.util :only [url-encode qualify-name qualify-dep make-dep]])
+        [clojuresphere.util :only [url-encode qualify-name qualify-dep make-dep
+                                   safe-read-string]])
   (:require [clojure.xml :as xml]
             [clojure.zip :as zip]
             [clojure.java.io :as io]))
@@ -69,7 +70,7 @@
     (Thread/sleep 250) ;more crude rate limiting
     (println "Fetching" project-url)
     (try
-      (-> project-url slurp read-string parse-project-data)
+      (-> project-url slurp safe-read-string parse-project-data)
       (catch Exception _
         (Thread/sleep 250)
         (println "Fetching" pom-url)

@@ -70,3 +70,11 @@
 
 (defn parse-int [x & [default]]
   (try (Integer/valueOf x) (catch Exception _ default)))
+
+(defn safe-read [s]
+  (binding [*read-eval* false]
+    (read s)))
+
+(defn safe-read-string [s]
+  (binding [*read-eval* false]
+    (read-string s)))
