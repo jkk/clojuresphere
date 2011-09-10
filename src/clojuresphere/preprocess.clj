@@ -179,7 +179,7 @@
            :when (seq github)]
        [pid github])))
 
-  ;; best description/url
+  ;; best description/url, last updated
   (defn step4 [g]
     (reduce
      (fn [g [pid best-gh clojars]]
@@ -187,7 +187,11 @@
         g [pid] assoc
         :description (or (get best-gh :description) (get clojars :description))
         :github-url (get best-gh :url)
-        :clojars-url (get clojars :url)))
+        :clojars-url (get clojars :url)
+        :updated (let [pushed (get best-gh :pushed)] ;TODO: clojars?
+                   (if (seq pushed)
+                     (/ (.getTime (java.util.Date. pushed)) 1000)
+                     0))))
      g
      (for [[pid {:keys [versions]}] g
            :when (seq versions)]
