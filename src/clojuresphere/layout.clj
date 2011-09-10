@@ -66,8 +66,8 @@
          (if (zero? (count (node :dependencies)))
            [:p.none "None"]
            [:ul.dep-list
-            (for [dep (node :dependencies)]
-              [:li (link-to (name dep) (h (name dep)))])
+            (for [aid (node :dependencies)]
+              [:li (link-to (name aid) (h (name aid)))])
             [:span.clear]])]
         [:div.versions
          [:h3 "Versions " [:span.count (count (node :versions))]]
@@ -91,25 +91,25 @@
          (if (zero? (count (node :dependents)))
            [:p.none "None"]
            [:ul.dep-list
-            (for [dep (sort (node :dependents))]
-              [:li (link-to (name dep) (h (name dep)))])
+            (for [aid (sort (node :dependents))]
+              [:li (link-to (name aid) (h (name aid)))])
             [:span.clear]])]]))))
 
-(defn render-dep [dep]
-  (let [[name ver] (apply lein-coord dep)]
+(defn render-coord [coord]
+  (let [[name ver] (apply lein-coord coord)]
     (str name " " ver)))
 
-(defn dep-url [dep]
-  (let [[gid aid ver] (maven-coord dep)]
+(defn coord-url [coord]
+  (let [[gid aid ver] (maven-coord coord)]
     (str "/" (url-encode aid) "/" (url-encode gid) "/" (url-encode ver))))
 
 (defn project-version-detail [gid aid ver]
-  (let [dep (lein-coord gid aid ver)
+  (let [coord (lein-coord gid aid ver)
         aid (-> aid name keyword)
-        node (get-in project/graph [aid :versions dep])]
+        node (get-in project/graph [aid :versions coord])]
     (when node
       (page
-       (render-dep dep)
+       (render-coord coord)
        [:div.project-detail
         [:div.overview
          [:p.description "Main project: " (link-to (str "/" (url-encode (name aid)))
@@ -121,16 +121,16 @@
          (if (zero? (count (node :dependencies)))
            [:p.none "None"]
            [:ul.dep-list.ver
-            (for [dep (node :dependencies)]
-              [:li (link-to (dep-url dep) (h (render-dep dep)))])
+            (for [coord (node :dependencies)]
+              [:li (link-to (coord-url coord) (h (render-coord coord)))])
             [:span.clear]])]
         [:div.dependents
          [:h3 "Dependents " [:span.count (count (node :dependents))]]
          (if (zero? (count (node :dependents)))
            [:p.none "None"]
            [:ul.dep-list.ver
-            (for [dep (sort (node :dependents))]
-              [:li (link-to (dep-url dep) (h (render-dep dep)))])
+            (for [coord (sort (node :dependents))]
+              [:li (link-to (coord-url coord) (h (render-coord coord)))])
             [:span.clear]])]]))))
 
 (defn project-list [pids]

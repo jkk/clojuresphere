@@ -32,15 +32,15 @@
                                 (let [gid (xml1-> zdep :groupId text)
                                       aid (xml1-> zdep :artifactId text)
                                       name (if gid (str gid "/" aid) aid)]
-                                  {:dep (lein-coord name (xml1-> zdep :version text))
+                                  {:coord (lein-coord name (xml1-> zdep :version text))
                                    :scope (xml1-> zdep :scope text)})))]
     {:group-id group-id
      :artifact-id artifact-id
      :name name
      :version version
      :description (xml1-> z :description text)
-     :dependencies (vec (map :dep (deps nil)))
-     :dev-dependencies (vec (map :dep (deps "test")))}))
+     :dependencies (vec (map :coord (deps nil)))
+     :dev-dependencies (vec (map :coord (deps "test")))}))
 
 ;; github
 
@@ -132,39 +132,38 @@
   ;; establish versions
   (defn step1 [g]
     (reduce
-     (fn [m [aid dep k info]]
-       (update-in m [aid :versions dep k] (fnil conj #{}) info))
+     (fn [m [aid coord k info]]
+       (update-in m [aid :versions coord k] (fnil conj #{}) info))
      g
      (for [p (concat github-projects clojars-projects)
-           :let [dep (apply lein-coord (map p [:group-id :artifact-id :version]))
-                 p (assoc p :dep dep)]
+           :let [coord (apply lein-coord (map p [:group-id :artifact-id :version]))]
            k [:github :clojars]
            :let [info (p k)]
            :when info]
-       [(-> p :artifact-id keyword) dep k info])))
+       [(-> p :artifact-id keyword) coord k info])))
 
   ;; connections among nodes & versions
   (defn step2 [g]
     (reduce
-     (fn [g [gid aid ver dep-dep]]
+     (fn [g [gid aid ver dep-coord]]
        (let [gid (or gid aid)
-             p-dep (lein-coord gid aid ver)
-             [dep-gid dep-aid dep-ver] (maven-coord dep-dep)
-             dep-dep (lein-coord dep-gid dep-aid dep-ver)
+             p-coord (lein-coord gid aid ver)
+             [dep-gid dep-aid dep-ver] (maven-coord dep-coord)
+             dep-coord (lein-coord dep-gid dep-aid dep-ver)
              aid (keyword aid)
              dep-aid (keyword dep-aid)]
          (-> g
              (update-in [aid :dependencies] (fnil conj #{}) dep-aid)
-             (update-in [aid :versions p-dep :dependencies]
-                        (fnil conj #{}) dep-dep)
+             (update-in [aid :versions p-coord :dependencies]
+                        (fnil conj #{}) dep-coord)
              (update-in [dep-aid :dependents] (fnil conj #{}) aid)
-             (update-in [dep-aid :versions dep-dep :dependents]
-                        (fnil conj #{}) p-dep))))
+             (update-in [dep-aid :versions dep-coord :dependents]
+                        (fnil conj #{}) p-coord))))
      g
      (for [p (concat github-projects clojars-projects)
-           dep (concat (get p :dependencies) (get p :dev-dependencies))]
+           coord (concat (get p :dependencies) (get p :dev-dependencies))]
        (concat (map p [:group-id :artifact-id :version])
-               [dep]))))
+               [coord]))))
 
   ;; total watchers/forks
   (defn step3 [g]
