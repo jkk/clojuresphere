@@ -125,7 +125,7 @@
 
   ;; Note: had to manually fix clojure-slick-rogue dependencies
 
-  ;; rsync -av clojars.org::clojars clojars
+  ;; rsync -av --exclude '*.jar' clojars.org::clojars clojars
   (def clojars-projects (read-all-pom-projects
                          "/Users/tin/src/clj/clojuresphere/clojars/"))
 
