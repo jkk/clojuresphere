@@ -1,5 +1,5 @@
 (ns clojuresphere.layout
-  (:use [clojuresphere.util :only [url-encode qualify-name qualify-dep make-dep]]
+  (:use [clojuresphere.util :only [url-encode qualify-name maven-coord lein-coord]]
         [hiccup.page-helpers :only [html5 include-js include-css
                                     javascript-tag link-to url]]
         [hiccup.form-helpers :only [form-to submit-button]]
@@ -96,15 +96,15 @@
             [:span.clear]])]]))))
 
 (defn render-dep [dep]
-  (let [[name ver] (apply make-dep dep)]
+  (let [[name ver] (apply lein-coord dep)]
     (str name " " ver)))
 
 (defn dep-url [dep]
-  (let [[gid aid ver] (qualify-dep dep)]
+  (let [[gid aid ver] (maven-coord dep)]
     (str "/" (url-encode aid) "/" (url-encode gid) "/" (url-encode ver))))
 
 (defn project-version-detail [gid aid ver]
-  (let [dep (make-dep gid aid ver)
+  (let [dep (lein-coord gid aid ver)
         aid (-> aid name keyword)
         node (get-in project/graph [aid :versions dep])]
     (when node

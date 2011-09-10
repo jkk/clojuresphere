@@ -9,16 +9,19 @@
       name-parts
       [name name])))
 
-;; I'm not sure what to call a [group artifact version] vector,
-;; so I call it a "dep".
-(defn qualify-dep [[name version]]
+(defn maven-coord [[name version]]
+  "Turn a Leiningen-format [name version] coordinate into Maven
+  [group artifact version] format (with strings for each element)"
   (let [[gid aid] (qualify-name name)]
     [gid aid (str version)]))
 
-(defn make-dep
+(defn lein-coord
+  "Return a coordinate in a qualified [group/artifact version] format, as
+  used by Leingingen, where the first element is a symbol, and the second a
+  string"
   ([name version]
      (let [[gid aid] (qualify-name name)]
-       (make-dep gid aid version)))
+       (lein-coord gid aid version)))
   ([group-id artifact-id version]
      (let [group-id (or group-id artifact-id)]
        [(symbol (str group-id "/" artifact-id)) (str version)])))

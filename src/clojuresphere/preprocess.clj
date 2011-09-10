@@ -1,7 +1,7 @@
 (ns clojuresphere.preprocess
   (:use [clj-github.repos :only [search-repos]]
         [clojure.data.zip.xml :only [xml-> xml1-> text]]
-        [clojuresphere.util :only [url-encode qualify-name qualify-dep make-dep
+        [clojuresphere.util :only [url-encode qualify-name maven-coord lein-coord
                                    safe-read-string]])
   (:require [clojure.xml :as xml]
             [clojure.zip :as zip]
@@ -32,7 +32,7 @@
                                 (let [gid (xml1-> zdep :groupId text)
                                       aid (xml1-> zdep :artifactId text)
                                       name (if gid (str gid "/" aid) aid)]
-                                  {:dep (make-dep name (xml1-> zdep :version text))
+                                  {:dep (lein-coord name (xml1-> zdep :version text))
                                    :scope (xml1-> zdep :scope text)})))]
     {:group-id group-id
      :artifact-id artifact-id
@@ -136,7 +136,7 @@
        (update-in m [aid :versions dep k] (fnil conj #{}) info))
      g
      (for [p (concat github-projects clojars-projects)
-           :let [dep (apply make-dep (map p [:group-id :artifact-id :version]))
+           :let [dep (apply lein-coord (map p [:group-id :artifact-id :version]))
                  p (assoc p :dep dep)]
            k [:github :clojars]
            :let [info (p k)]
@@ -148,9 +148,9 @@
     (reduce
      (fn [g [gid aid ver dep-dep]]
        (let [gid (or gid aid)
-             p-dep (make-dep gid aid ver)
-             [dep-gid dep-aid dep-ver] (qualify-dep dep-dep)
-             dep-dep (make-dep dep-gid dep-aid dep-ver)
+             p-dep (lein-coord gid aid ver)
+             [dep-gid dep-aid dep-ver] (maven-coord dep-dep)
+             dep-dep (lein-coord dep-gid dep-aid dep-ver)
              aid (keyword aid)
              dep-aid (keyword dep-aid)]
          (-> g
