@@ -33,7 +33,9 @@
        body]]
      [:div#footer
       [:p#links (link-to "http://github.com/jkk/clojuresphere" "GitHub")]
-      [:p#copyright "Made by " (link-to "http://jkkramer.com" "Justin Kramer")]
+      [:p#copyright "Made by "
+       (link-to "http://jkkramer.com" "Justin Kramer") " - "
+       (link-to "http://twitter.com/jkkramer" "@jkkramer")]
       [:p#stats (str (count project/graph) " projects indexed "
                      (-> project/graph-data-file
                          io/resource io/file .lastModified (java.util.Date.)))]]]
