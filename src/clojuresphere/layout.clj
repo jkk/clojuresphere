@@ -41,6 +41,12 @@
                          io/resource io/file .lastModified (java.util.Date.)))]]]
     (include-js "/js/jquery.js" "/js/main.js")]))
 
+(defn coord-url [coord]
+  (let [[gid aid ver] (maven-coord coord)]
+    (str "/" (url-encode aid)
+         "/" (url-encode gid)
+         "/" (url-encode (or ver "")))))
+
 ;; TODO: break this up into manageable pieces
 (defn project-detail [pid]
   (let [pid (-> pid name keyword)
@@ -74,11 +80,10 @@
          (if (zero? (count (node :versions)))
            [:p.none "None"]
            [:ul.version-list
-            (for [[[vname vver] vinfo] (project/most-used-versions pid)
-                  :let [[gid aid] (qualify-name vname)]]
+            (for [[[vname vver :as coord] vinfo] (project/most-used-versions pid)]
               [:li
                (link-to
-                (str aid "/" gid "/" (url-encode (or vver "")))
+                (coord-url coord)
                 [:span.version
                  [:span.vver (h (or vver "[none]"))]
                  [:span.vname (h (str vname))]]
@@ -98,10 +103,6 @@
 (defn render-coord [coord]
   (let [[name ver] (apply lein-coord coord)]
     (str name " " ver)))
-
-(defn coord-url [coord]
-  (let [[gid aid ver] (maven-coord coord)]
-    (str "/" (url-encode aid) "/" (url-encode gid) "/" (url-encode ver))))
 
 (defn project-version-detail [gid aid ver]
   (let [coord (lein-coord gid aid ver)
