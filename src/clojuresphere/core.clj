@@ -1,7 +1,6 @@
 (ns clojuresphere.core
   (:use [clojuresphere.util :only [memory-stats parse-int]]
         [compojure.core :only [defroutes GET POST ANY]]
-        [hiccup.middleware :only [wrap-base-url]]
         [ring.util.response :only [response]]
         [ring.middleware.params :only [wrap-params]]
         [ring.adapter.jetty :only [run-jetty]])
@@ -49,7 +48,6 @@
 (def app (-> #'routes
              wrap-request
              wrap-ajax-detect
-             wrap-base-url
              wrap-params))
 
 (defn -main []
