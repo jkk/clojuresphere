@@ -15,7 +15,8 @@
        (prn-str (merge {:projects (count project/graph)
                         :memory (memory-stats :gc gc)})))
 
-  (GET "/" [] (layout/welcome))
+  (GET "/" {{offset "offset"} :params}
+       (layout/top-projects (parse-int offset 0)))
   (GET ["/:pid" :pid #"[a-zA-Z0-9\-\.\_]+"] [pid] (layout/project-detail pid))
   (GET ["/:aid/:gid/:ver"
         :aid #"[a-zA-Z0-9\-\.\_]+"
@@ -25,19 +26,29 @@
        (layout/project-version-detail gid aid ver))
 
   (GET "/_search" {{query "query" offset "offset"} :params}
-       (let [offset (parse-int offset 0)]
-         (layout/search-results query offset)))
-
-  (GET "/_fragments/top-projects"
-       {{offset "offset" limit "limit"} :params}
-       (let [offset (parse-int offset 0)]
-         (layout/project-list (take 20 (drop offset project/most-used)))))
-  (GET "/_fragments/random" [] (layout/project-list (repeatedly 20 project/random)))
+       (layout/search-results query (parse-int offset 0))))
 
   (route/resources "/")
   (route/not-found (layout/not-found)))
 
+(def ^:dynamic *req* nil)
+
+(defn wrap-request [handler]
+  (fn [req]
+    (binding [*req* req]
+      (handler req))))
+
+(def ^:dynamic *ajax-request?* nil)
+
+(defn wrap-ajax-detect [handler]
+  (fn [req]
+    (binding [*ajax-request?* (= "XMLHttpRequest"
+                                 (get-in req [:headers "x-requested-with"]))]
+      (handler req))))
+
 (def app (-> #'routes
+             wrap-request
+             wrap-ajax-detect
              wrap-base-url
              wrap-params))
 

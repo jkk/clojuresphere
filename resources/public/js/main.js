@@ -1,38 +1,35 @@
 $(function() {
 
-    var topOffset = 0;
+    // ajaxify links & use html5 history API
+    if (!!(window.history && history.pushState)) {
+        var historyCache = {};
+        historyCache[location.href] = $("#content").clone().wrap("<div>").parent().html();
 
-    function refreshTop() {
-        $.get("/_fragments/top-projects", {offset: topOffset}, function(data) {
-            $("#top-projects ul").replaceWith(data);
+        // Assumes root element of content has an ID
+        function replaceContent(content) {
+            var $content = $(content);
+            $("#" + $content.attr("id")).replaceWith($content);
+        }
+
+        $(".paginated p.nav a").live("click", function() {
+            if ($(this).hasClass("inactive"))
+                return false;
+            var href = this.href;
+            history.pushState(null, null, href);
+            $.get(href, function(data) {
+                historyCache[href] = data;
+                replaceContent(data);
+                $(window).scrollTop(0);
+            });
+            return false;
         });
-        if (topOffset > 0)
-            $("#top-projects p.nav a.prev").removeClass("inactive");
-        else
-            $("#top-projects p.nav a.prev").addClass("inactive");
+
+        $(window).bind("popstate", function() {
+            // FIXME: in chrome, this always runs on page load
+            if (historyCache[location.href]) {
+                replaceContent(historyCache[location.href]);
+                $(window).scrollTop(0);
+            }
+        });
     }
-
-    $("#top-projects p.nav a.next").click(function() {
-        topOffset += 20;
-        refreshTop();
-        return false;
-    });
-    $("#top-projects p.nav a.prev").click(function() {
-        topOffset -= 20;
-        if (topOffset < 0)
-            topOffset = 0;
-        refreshTop();
-        return false;
-    });
-
-    $("a.inactive").click(function() {
-        return false;
-    });
-
-    $("p.refresh a").click(function() {
-        $.get("/_fragments/random", function(data) {
-            $("#random-projects ul").replaceWith(data);
-        });
-        return false;
-    });
 });

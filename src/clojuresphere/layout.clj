@@ -1,45 +1,50 @@
 (ns clojuresphere.layout
-  (:use [clojuresphere.util :only [url-encode qualify-name maven-coord lein-coord]]
+  (:use [clojuresphere.core :only [*req* *ajax-request?*]]
+        [clojuresphere.util :only [url-encode qualify-name maven-coord lein-coord
+                                   parse-int]]
         [hiccup.page-helpers :only [html5 include-js include-css
                                     javascript-tag link-to url]]
         [hiccup.form-helpers :only [form-to submit-button]]
-        [hiccup.core :only [h *base-url* html]])
+        [hiccup.core :only [h html]])
   (:require [clojuresphere.project-model :as project]
             [clojure.java.io :as io]))
 
 (def site-name "ClojureSphere")
 
 (defn page [title & body]
-  (html5
-   [:meta {:http-equiv "content-type" :content "text/html; charset=utf-8"}]
-   [:meta {:http-equiv "X-UA-Compatible" :content "IE=edge"}]
-   [:title (str (when title (str (h title) " - ")) site-name)]
-   [:meta {:name "description" :content "Browse the entire Clojure ecosystem"}]
-   (include-css "/css/main.css")
-   [:body
-    [:div#page-shell
-     [:div#header
-      [:div.inner
-       [:h1 (link-to "/" site-name)]
-       [:p#tagline "A browsable dependency graph of the Clojure ecosystem"]
-       (form-to [:get "/_search"]
-                [:input {:name "query" :size 30 :id "query"
-                         :type "search" :placeholder "Search"}] " "
-                         (submit-button "Go"))]]
-     [:div#content-shell
-      [:div#content
-       (when title
-         [:h2#page-title (h title)])
-       body]]
-     [:div#footer
-      [:p#links (link-to "http://github.com/jkk/clojuresphere" "GitHub")]
-      [:p#copyright "Made by "
-       (link-to "http://jkkramer.com" "Justin Kramer") " - "
-       (link-to "http://twitter.com/jkkramer" "@jkkramer")]
-      [:p#stats (str (count project/graph) " projects indexed "
-                     (-> project/graph-data-file
-                         io/resource io/file .lastModified (java.util.Date.)))]]]
-    (include-js "/js/jquery.js" "/js/main.js")]))
+  (let [content [:div#content
+                 (when title
+                   [:h2#page-title (h title)])
+                 [:div#content-body body]]]
+    (if *ajax-request?*
+      (html content)
+      (html5
+       [:meta {:http-equiv "content-type" :content "text/html; charset=utf-8"}]
+       [:meta {:http-equiv "X-UA-Compatible" :content "IE=edge"}]
+       [:title (str (when title (str (h title) " - ")) site-name)]
+       [:meta {:name "description" :content "Browse the entire Clojure ecosystem"}]
+       (include-css "/css/main.css")
+       [:body
+        [:div#page-shell
+         [:div#header
+          [:div.inner
+           [:h1 (link-to "/" site-name)]
+           [:p#tagline "A browsable dependency graph of the Clojure ecosystem"]
+           (form-to [:get "/_search"]
+                    [:input {:name "query" :size 30 :id "query"
+                             :type "search" :placeholder "Search"}] " "
+                             (submit-button "Go"))]]
+         [:div#content-shell
+          content]
+         [:div#footer
+          [:p#links (link-to "http://github.com/jkk/clojuresphere" "GitHub")]
+          [:p#copyright "Made by "
+           (link-to "http://jkkramer.com" "Justin Kramer") " - "
+           (link-to "http://twitter.com/jkkramer" "@jkkramer")]
+          [:p#stats (str (count project/graph) " projects indexed "
+                         (-> project/graph-data-file
+                             io/resource io/file .lastModified (java.util.Date.)))]]]
+        (include-js "/js/jquery.js" "/js/main.js")]))))
 
 (defn coord-url [coord]
   (let [[gid aid ver] (maven-coord coord)]
@@ -135,7 +140,6 @@
             [:span.clear]])]]))))
 
 (defn project-list [pids]
-  (html
   [:ul.project-list
    (for [pid pids
          :let [pid (-> pid name keyword)
@@ -154,38 +158,50 @@
        (when (node :forks)
          [:span.stat.forks
           [:span.label "Forks"] " " [:span.value (node :forks)]]))])
-     [:span.clear]]))
+   [:span.clear]])
 
-(defn welcome []
-  (page
-   nil
-   [:div#top-projects
-    [:h2 "Top Projects"]
-    (project-list (take 20 project/most-used))
-    [:p.nav
-     [:a.button.next {:href "#"} "Next"]
-     [:a.button.prev.inactive {:href "#"} "Previous"]]]
-   [:div#random-projects
-    [:h2 "Random Projects"]
-    (project-list (repeatedly 20 project/random))
-    [:p.refresh [:a.button {:href "#"} "Refresh"]]]))
+(def per-page 40)
 
 (defn neg-guard [x]
   (if (neg? x) 0 x))
 
+(defn paginate [content offset total]
+  (let [qp (:query-params *req* {}) ;pass along all GET params
+        next-url (url (:uri *req*)
+                      (assoc qp "offset" (+ offset per-page)))
+        prev-url (url (:uri *req*)
+                      (assoc qp "offset" (neg-guard (- offset per-page))))
+        next-tag (if (< total per-page)
+                   :a.button.next.inactive
+                   :a.button.next)
+        prev-tag (if (pos? offset)
+                   :a.button.prev
+                   :a.button.prev.inactive)]
+    [:div.paginated
+     content
+     [:p.nav
+      [next-tag {:href next-url} "Next"]
+      [prev-tag {:href prev-url} "Previous"]]]))
+
+(defn top-projects [offset]
+  (page
+   nil
+   [:div#top-projects
+    [:h2 "Top Projects"]
+    (paginate
+     (project-list (take per-page (drop offset project/most-used)))
+     offset
+     (count project/most-used))]))
+
 (defn search-results [query offset]
-  (let [results (take 40 (drop offset (project/find-projects query)))
-        next-url (url "/_search" {:query query :offset (+ offset 40)})
-        prev-url (url "/_search" {:query query :offset (neg-guard (- offset 40))})
-        next-tag (if (< (count results) 40) :a.button.next.inactive :a.button.next)
-        prev-tag (if (pos? offset) :a.button.prev :a.button.prev.inactive)]
+  (let [results (take per-page (drop offset (project/find-projects query)))]
     (page
      (str "Search Results: " (h query))
      [:div#search-results
-      (project-list results)
-      [:p.nav
-       [next-tag {:href next-url} "Next"]
-       [prev-tag {:href prev-url} "Previous"]]])))
+      (paginate
+       (project-list results)
+       offset
+       (count results))])))
 
 (defn not-found []
   (page

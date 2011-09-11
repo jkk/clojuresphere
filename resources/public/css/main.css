@@ -523,6 +523,7 @@ a.button {
 a.button.inactive {
     background: #888;
     color: #ddd;
+    cursor: default;
 }
 a.button:hover {
     background: #24c;
