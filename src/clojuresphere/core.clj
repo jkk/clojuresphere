@@ -25,7 +25,7 @@
        (layout/project-version-detail gid aid ver))
 
   (GET "/_search" {{query "query" offset "offset"} :params}
-       (layout/search-results query (parse-int offset 0))))
+       (layout/search-results query (parse-int offset 0)))
 
   (route/resources "/")
   (route/not-found (layout/not-found)))
