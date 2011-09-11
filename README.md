@@ -16,21 +16,30 @@ Browsable dependency graph of Clojure projects. See it live here: http://clojure
 - separate/distinguish dev dependencies
   - different color or icon?
   - toggle to filter out entirely?
-- attach a "last updated" date to projects, when available
+- ~~attach a "last updated" date to projects, when available~~
   - how can I get this from clojars?
+- tabs on home for top / recently-updated / random
 - dependents sort: most-used, last updated, alphabetical
+- sort dependencies by most-used
 - show a project's transitive dependencies
+  - as a tree/graph? arborjs?
+- in project-version-detail, show only most-current version for a group/artifact combo?
+- show best project homepage url
+- time-chart of clojure projects (github creation date)
+- see about getting timely sql dumps from clojars
+  - created/updated timestamps
 - automate data fetching & preprocessing
   - incremental github updates based on push date
 - proper project.clj and pom.xml parsing
   - including version ranges (issue #1)
+  - http://maven.apache.org/pom.html
+  - special case for pom.contrib?
 - look for project.clj in sub-dirs (e.g., ring)
 - filter/stats by source (github/clojars)
 - clean up layout.clj code
 - put controller fns between routes & layout fns?
 - show github/clojars links for specific project versions
-- tabs on home for top / recently-updated / random
-- infinite scroll for project list?
+- toggle to exclude historical versions from counts?
 
 ## License
 
