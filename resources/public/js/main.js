@@ -14,9 +14,10 @@ $(function() {
         $(".paginated p.nav a").live("click", function() {
             if ($(this).hasClass("inactive"))
                 return false;
-            var href = this.href;
+            var href = this.href,
+                params = {_: (new Date().getTime())}; // cache buster
             history.pushState(null, null, href);
-            $.get(href, function(data) {
+            $.get(href, params, function(data) {
                 historyCache[href] = data;
                 replaceContent(data);
                 $(window).scrollTop(0);

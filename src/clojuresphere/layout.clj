@@ -166,7 +166,8 @@
   (if (neg? x) 0 x))
 
 (defn paginate [content offset item-count]
-  (let [qp (:query-params *req* {}) ;pass along all GET params
+  (let [qp (dissoc (:query-params *req* {}) ;pass along all GET params
+                   "_")                     ;except cache buster
         next-url (url (:uri *req*)
                       (assoc qp "offset" (+ offset per-page)))
         prev-url (url (:uri *req*)
