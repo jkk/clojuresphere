@@ -556,3 +556,16 @@ a.button.prev {
     top: 1em;
     right: 1em;
 }
+#projects .sort-links a {
+    border-left: 1px solid #ccc;
+    margin: 0 0 0 10px;
+    padding: 0 0 0 10px;
+}
+#projects .sort-links a:first-child {
+    border: none;
+    padding: 0;
+}
+#projects .sort-links .active {
+    font-weight: bold;
+    color: #222;
+}

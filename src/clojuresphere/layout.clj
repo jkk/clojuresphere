@@ -2,6 +2,7 @@
   (:use [clojuresphere.core :only [*req*]]
         [clojuresphere.util :only [url-encode qualify-name maven-coord lein-coord
                                    parse-int]]
+        [clojure.string :only [capitalize]]
         [hiccup.page-helpers :only [html5 include-js include-css
                                     javascript-tag link-to url]]
         [hiccup.form-helpers :only [form-to submit-button]]
@@ -205,7 +206,8 @@
 (defn projects [query sort offset]
   (page
    nil
-   (let [random? (= "random" sort)
+   (let [sort (or sort "dependents")
+         random? (= "random" sort)
          pids (cond
                query (project/find-projects query)
                random? (repeatedly per-page project/random)
@@ -217,10 +219,10 @@
      [:div#projects
       [:h2 title]
       [:div.sort-links
-       "Sort by "
-       (link-to "/?sort=dependents" "Most-Used") " | "
-       (link-to "/?sort=updated" "Last Updated") " | "
-       (link-to "/?sort=random" "Random")]
+       "Sort by"
+       (for [s ["dependents" "watchers" "forks" "updated" "random"]]
+         (let [a-tag (if (= s sort) :a.active :a)]
+           [a-tag {:href (str "/?sort=" s)} (capitalize s)]))]
       (paginated-list pids (if random? 0 offset))])))
 
 (defn not-found []

@@ -6,12 +6,14 @@
 
 (def graph-data-file "project_graph.clj.gz")
 (defonce graph (read-gz-resource graph-data-file))
-(defonce project-count (count graph))
-(defonce last-updated (-> graph-data-file
+(def project-count (count graph))
+(def last-updated (-> graph-data-file
                           io/resource io/file .lastModified (java.util.Date.)))
 
-(defonce sorted-pids
+(def sorted-pids
   {:dependents (->> graph (sort-by (comp count :dependents val) >) keys vec)
+   :watchers (->> graph (sort-by (comp #(:watchers % 0) val) >) keys vec)
+   :forks (->> graph (sort-by (comp #(:forks % 0) val) >) keys vec)
    :updated (->> graph (sort-by (comp #(:updated % 0) val) >) keys vec)})
 
 (defn random []
