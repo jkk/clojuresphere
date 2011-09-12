@@ -44,7 +44,10 @@
           [:p#stats (str (count project/graph) " projects indexed "
                          (-> project/graph-data-file
                              io/resource io/file .lastModified (java.util.Date.)))]]]
-        (include-js "/js/jquery.js" "/js/main.js")]))))
+        (include-js "/js/jquery.js"
+                    "/js/history.adapter.jquery.js"
+                    "/js/history.js"
+                    "/js/main.js")]))))
 
 (defn coord-url [coord]
   (let [[gid aid ver] (maven-coord coord)]
