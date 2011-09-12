@@ -17,7 +17,12 @@ $(function() {
         $("#" + $content.attr("id")).replaceWith($content);
     }
     
-    $(".paginated p.nav a").live("click", function() {
+    var ajaxLinks = ["#header h1 a",
+                     ".paginated p.nav a",
+                     "ul.project-list a",
+                     "ul.dep-list a",
+                     "ul.version-list a"];
+    $(ajaxLinks.join(", ")).live("click", function() {
         if ($(this).hasClass("inactive"))
             return false;
         History.pushState(null, null, this.href);
