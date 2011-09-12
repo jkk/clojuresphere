@@ -165,13 +165,13 @@
 (defn neg-guard [x]
   (if (neg? x) 0 x))
 
-(defn paginate [content offset total]
+(defn paginate [content offset item-count]
   (let [qp (:query-params *req* {}) ;pass along all GET params
         next-url (url (:uri *req*)
                       (assoc qp "offset" (+ offset per-page)))
         prev-url (url (:uri *req*)
                       (assoc qp "offset" (neg-guard (- offset per-page))))
-        next-tag (if (< total per-page)
+        next-tag (if (< item-count per-page)
                    :a.button.next.inactive
                    :a.button.next)
         prev-tag (if (pos? offset)
@@ -183,25 +183,25 @@
       [next-tag {:href next-url} "Next"]
       [prev-tag {:href prev-url} "Previous"]]]))
 
+(defn paginated-list [pids offset]
+  (let [window (take per-page (drop offset pids))]
+    (paginate
+     (project-list window)
+     offset
+     (count window))))
+
 (defn top-projects [offset]
   (page
    nil
    [:div#top-projects
     [:h2 "Top Projects"]
-    (paginate
-     (project-list (take per-page (drop offset project/most-used)))
-     offset
-     (count project/most-used))]))
+    (paginated-list project/most-used offset)]))
 
 (defn search-results [query offset]
-  (let [results (take per-page (drop offset (project/find-projects query)))]
-    (page
-     (str "Search Results: " (h query))
-     [:div#search-results
-      (paginate
-       (project-list results)
-       offset
-       (count results))])))
+  (page
+   (str "Search Results: " (h query))
+   [:div#search-results
+    (paginated-list (project/find-projects query) offset)]))
 
 (defn not-found []
   (page
