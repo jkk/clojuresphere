@@ -39,6 +39,7 @@ $(function() {
     }
     
     var ajaxLinks = ["#header h1 a",
+                     "#projects .sort-links a",
                      ".paginated p.nav a",
                      "ul.project-list a",
                      "ul.dep-list a",

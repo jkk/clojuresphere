@@ -548,3 +548,11 @@ a.next {
 a.button.prev {
     margin-right: 1em;
 }
+#projects {
+    position: relative;
+}
+#projects .sort-links {
+    position: absolute;
+    top: 1em;
+    right: 1em;
+}

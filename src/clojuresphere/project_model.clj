@@ -9,12 +9,13 @@
 (defonce project-count (count graph))
 (defonce last-updated (-> graph-data-file
                           io/resource io/file .lastModified (java.util.Date.)))
-(defonce most-used (->> graph
-                        (sort-by (comp count :dependents val) >)
-                        keys vec))
+
+(defonce sorted-pids
+  {:dependents (->> graph (sort-by (comp count :dependents val) >) keys vec)
+   :updated (->> graph (sort-by (comp #(:updated % 0) val) >) keys vec)})
 
 (defn random []
-  (rand-nth most-used))
+  (rand-nth (:dependents sorted-pids)))
 
 (defn most-used-versions [pid]
   (let [versions (get-in graph [pid :versions])]

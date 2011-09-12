@@ -205,15 +205,23 @@
 (defn projects [query sort offset]
   (page
    nil
-   (let [pids (cond
-                (and (nil? query) (nil? sort)) project/most-used
-                (nil? sort) (project/find-projects query))
+   (let [random? (= "random" sort)
+         pids (cond
+               query (project/find-projects query)
+               random? (repeatedly per-page project/random)
+               :else (or (project/sorted-pids (keyword sort))
+                         (project/sorted-pids :dependents)))
          title (if query
                  (str "Search: " (h query))
                  "Projects")]
      [:div#projects
       [:h2 title]
-      (paginated-list pids offset)])))
+      [:div.sort-links
+       "Sort by "
+       (link-to "/?sort=dependents" "Most-Used") " | "
+       (link-to "/?sort=updated" "Last Updated") " | "
+       (link-to "/?sort=random" "Random")]
+      (paginated-list pids (if random? 0 offset))])))
 
 (defn not-found []
   (page
