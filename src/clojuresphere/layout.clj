@@ -1,5 +1,5 @@
 (ns clojuresphere.layout
-  (:use [clojuresphere.core :only [*req* *ajax-request?*]]
+  (:use [clojuresphere.core :only [*req*]]
         [clojuresphere.util :only [url-encode qualify-name maven-coord lein-coord
                                    parse-int]]
         [hiccup.page-helpers :only [html5 include-js include-css
@@ -16,7 +16,7 @@
                  (when title
                    [:h2#page-title (h title)])
                  [:div#content-body body]]]
-    (if *ajax-request?*
+    (if (:ajax? *req*)
       (html content)
       (html5
        [:meta {:http-equiv "content-type" :content "text/html; charset=utf-8"}]

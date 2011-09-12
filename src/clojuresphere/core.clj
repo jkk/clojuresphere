@@ -37,13 +37,11 @@
     (binding [*req* req]
       (handler req))))
 
-(def ^:dynamic *ajax-request?* nil)
-
 (defn wrap-ajax-detect [handler]
   (fn [req]
-    (binding [*ajax-request?* (= "XMLHttpRequest"
-                                 (get-in req [:headers "x-requested-with"]))]
-      (handler req))))
+    (handler (assoc req
+               :ajax? (= "XMLHttpRequest"
+                         (get-in req [:headers "x-requested-with"]))))))
 
 (def app (-> #'routes
              wrap-request
