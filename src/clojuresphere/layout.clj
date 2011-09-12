@@ -209,11 +209,11 @@
    (let [sort (or sort "dependents")
          random? (= "random" sort)
          pids (cond
-               query (project/find-projects query)
-               random? (repeatedly per-page project/random)
-               :else (or (project/sorted-pids (keyword sort))
-                         (project/sorted-pids :dependents)))
-         title (if query
+               (seq query) (project/sort-pids (project/find-pids query) sort)
+               random?     (repeatedly per-page project/random)
+               :else       (or (project/sorted-pids (keyword sort))
+                               (project/sorted-pids :dependents)))
+         title (if (seq query)
                  (str "Search: " (h query))
                  "Projects")]
      [:div#projects
@@ -222,7 +222,7 @@
        "Sort by"
        (for [s ["dependents" "watchers" "forks" "updated" "random"]]
          (let [a-tag (if (= s sort) :a.active :a)]
-           [a-tag {:href (str "/?sort=" s)} (capitalize s)]))]
+           [a-tag {:href (url "/" {:sort s :query query})} (capitalize s)]))]
       (paginated-list pids (if random? 0 offset))])))
 
 (defn not-found []

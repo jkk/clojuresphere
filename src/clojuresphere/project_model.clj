@@ -16,6 +16,13 @@
    :forks (->> graph (sort-by (comp #(:forks % 0) val) >) keys vec)
    :updated (->> graph (sort-by (comp #(:updated % 0) val) >) keys vec)})
 
+(defn sort-pids [pids field]
+  (let [field (keyword (name field))
+        key-fn (if (= :dependents field)
+                 (comp count :dependents)
+                 #(field % 0))]
+    (sort-by (comp key-fn graph) > pids)))
+
 (defn random []
   (rand-nth (:dependents sorted-pids)))
 
@@ -23,7 +30,7 @@
   (let [versions (get-in graph [pid :versions])]
     (sort-by (comp count :dependents val) > versions)))
 
-(defn find-projects [query]
+(defn find-pids [query]
   (let [query-re (re-pattern (str "(?i)" (or query "")))]
     (for [[pid pinfo] graph
           :when (some #(when % (re-find query-re %))
