@@ -10,6 +10,26 @@
 
 (def site-name "ClojureSphere")
 
+(defn page-header []
+  [:div#header
+   [:div.inner
+    [:h1 (link-to "/" site-name)]
+    [:p#tagline "Browse the open-source Clojure ecosystem"]
+    (form-to [:get "/_search"]
+             [:input {:name "query" :size 30 :id "query"
+                      :value (get-in *req* [:query-params "query"])
+                      :type "search" :placeholder "Search"}] " "
+                      (submit-button "Go"))]])
+
+(defn page-footer []
+  [:div#footer
+   [:p#links (link-to "http://github.com/jkk/clojuresphere" "GitHub")]
+   [:p#copyright "Made by "
+    (link-to "http://jkkramer.com" "Justin Kramer") " - "
+    (link-to "http://twitter.com/jkkramer" "@jkkramer")]
+   [:p#stats (str project/project-count " projects indexed "
+                  project/last-updated)]])
+
 (defn page [title & body]
   (let [content [:div#content
                  (when title
@@ -25,24 +45,10 @@
        (include-css "/css/main.css")
        [:body
         [:div#page-shell
-         [:div#header
-          [:div.inner
-           [:h1 (link-to "/" site-name)]
-           [:p#tagline "Browse the open-source Clojure ecosystem"]
-           (form-to [:get "/_search"]
-                    [:input {:name "query" :size 30 :id "query"
-                             :value (get-in *req* [:query-params "query"])
-                             :type "search" :placeholder "Search"}] " "
-                             (submit-button "Go"))]]
+         (page-header)
          [:div#content-shell
           content]
-         [:div#footer
-          [:p#links (link-to "http://github.com/jkk/clojuresphere" "GitHub")]
-          [:p#copyright "Made by "
-           (link-to "http://jkkramer.com" "Justin Kramer") " - "
-           (link-to "http://twitter.com/jkkramer" "@jkkramer")]
-          [:p#stats (str project/project-count " projects indexed "
-                         project/last-updated)]]]
+         (page-footer)]
         (include-js "/js/jquery.js"
                     "/js/history.adapter.jquery.js"
                     "/js/history.js"
