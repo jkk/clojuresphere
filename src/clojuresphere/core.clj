@@ -14,16 +14,13 @@
        (prn-str (merge {:projects (count project/graph)
                         :memory (memory-stats :gc gc)})))
 
-  (GET "/" {{offset "offset"} :params}
-       (layout/top-projects (parse-int offset 0)))
+  (GET "/" {{query "query" sort "sort" offset "offset"} :params}
+       (layout/projects query sort (parse-int offset 0)))
   
   (GET ["/:pid" :pid #"[^/]+"] [pid] (layout/project-detail pid))
   (GET ["/:aid/:gid/:ver" :aid #"[^/]+" :gid #"[^/]+" :ver #"[^/]+"]
        [gid aid ver]
        (layout/project-version-detail gid aid ver))
-
-  (GET "/_search" {{query "query" offset "offset"} :params}
-       (layout/search-results query (parse-int offset 0)))
 
   (route/resources "/")
   (route/not-found (layout/not-found)))

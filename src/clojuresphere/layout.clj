@@ -15,7 +15,7 @@
    [:div.inner
     [:h1 (link-to "/" site-name)]
     [:p#tagline "Browse the open-source Clojure ecosystem"]
-    (form-to [:get "/_search"]
+    (form-to [:get "/"]
              [:input {:name "query" :size 30 :id "query"
                       :value (get-in *req* [:query-params "query"])
                       :type "search" :placeholder "Search"}] " "
@@ -201,18 +201,18 @@
      offset
      (count window))))
 
-(defn top-projects [offset]
+(defn projects [query sort offset]
   (page
    nil
-   [:div#top-projects
-    [:h2 "Top Projects"]
-    (paginated-list project/most-used offset)]))
-
-(defn search-results [query offset]
-  (page
-   (str "Search Results: " (h query))
-   [:div#search-results
-    (paginated-list (project/find-projects query) offset)]))
+   (let [pids (cond
+                (and (nil? query) (nil? sort)) project/most-used
+                (nil? sort) (project/find-projects query))
+         title (if query
+                 (str "Search: " (h query))
+                 "Projects")]
+     [:div#projects
+      [:h2 title]
+      (paginated-list pids offset)])))
 
 (defn not-found []
   (page

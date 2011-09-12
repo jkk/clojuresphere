@@ -22,7 +22,7 @@ Browsable dependency graph of Clojure projects. See it live here: http://clojure
   - use clearfix
   - bigger click target for page heading
 - handle ajax 404
-- remove _search url, pass query to /
+- ~~remove _search url, pass query to /~~
 - breadcrumb nav?
 - show overall stats in sidebar
   - total projects
