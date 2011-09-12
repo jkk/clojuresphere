@@ -55,12 +55,58 @@
                     "/js/main.js")]))))
 
 (defn coord-url [coord]
-  (let [[gid aid ver] (maven-coord coord)]
-    (str "/" (url-encode aid)
-         "/" (url-encode gid)
-         "/" (url-encode (or ver "")))))
+  (if (or (keyword? coord) (string? coord))
+    (str "/" (name coord))
+    (let [[gid aid ver] (maven-coord coord)]
+      (str "/" (url-encode aid)
+           "/" (url-encode gid)
+           "/" (url-encode (or ver ""))))))
 
-;; TODO: break this up into manageable pieces
+(defn render-coord [coord]
+  (if (or (keyword? coord) (string? coord))
+    (name coord)
+    (let [[name ver] (apply lein-coord coord)]
+      (str name " " ver))))
+
+(defn project-overview [node]
+  [:div.overview
+   [:p.description (node :description)]
+   (when (node :github-url)
+     [:p.github (link-to (node :github-url) "GitHub")])
+   (when (node :clojars-url)
+     [:p.clojars (link-to (node :clojars-url) "Clojars")])
+   (when (node :watchers)
+     [:p.watchers [:span.label "Watchers"] " " [:span.value (node :watchers)]])
+   (when (node :forks)
+     [:p.forks [:span.label "Forks"] " " [:span.value (node :forks)]])
+   [:div.clear]])
+
+(defn project-dep-list [deps]
+  (if (zero? (count deps))
+    [:p.none "None"]
+    (let [dep1 (first deps)
+          ul-tag (if (or (keyword? dep1) (string? dep1))
+                   :ul.dep-list
+                   :ul.dep-list.ver)]
+      [ul-tag
+       (for [aid deps]
+         [:li (link-to (coord-url aid) (h (render-coord aid)))])
+       [:span.clear]])))
+
+(defn project-version-list [versions]
+  (if (zero? (count versions))
+    [:p.none "None"]
+    [:ul.version-list
+     (for [[[vname vver :as coord] vinfo] versions]
+       [:li
+        (link-to
+         (coord-url coord)
+         [:span.version
+          [:span.vver (h (or vver "[none]"))]
+          [:span.vname (h (str vname))]]
+         [:span.count (count (vinfo :dependents))])])
+     [:span.clear]]))
+
 (defn project-detail [pid]
   (let [pid (-> pid name keyword)
         node (project/graph pid)]
@@ -68,54 +114,19 @@
       (page
        (name pid)
        [:div.project-detail
-        [:div.overview
-         [:p.description (node :description)]
-         (when (node :github-url)
-           [:p.github (link-to (node :github-url) "GitHub")])
-         (when (node :clojars-url)
-           [:p.clojars (link-to (node :clojars-url) "Clojars")])
-         (when (node :watchers)
-           [:p.watchers [:span.label "Watchers"] " " [:span.value (node :watchers)]])
-         (when (node :forks)
-           [:p.forks [:span.label "Forks"] " " [:span.value (node :forks)]])
-         [:div.clear]]
+        (project-overview node)
         [:div.dependencies
          [:h3 "Dependencies (current and past) "
           [:span.count (count (node :dependencies))]]
-         (if (zero? (count (node :dependencies)))
-           [:p.none "None"]
-           [:ul.dep-list
-            (for [aid (node :dependencies)]
-              [:li (link-to (name aid) (h (name aid)))])
-            [:span.clear]])]
-        [:div.versions
-         [:h3 "Versions " [:span.count (count (node :versions))]]
-         (if (zero? (count (node :versions)))
-           [:p.none "None"]
-           [:ul.version-list
-            (for [[[vname vver :as coord] vinfo] (project/most-used-versions pid)]
-              [:li
-               (link-to
-                (coord-url coord)
-                [:span.version
-                 [:span.vver (h (or vver "[none]"))]
-                 [:span.vname (h (str vname))]]
-                ;; TODO: count only unique artifact ids?
-                [:span.count (count (vinfo :dependents))])])
-            [:span.clear]])]
+         (project-dep-list (node :dependencies))]
+        (let [versions (project/most-used-versions pid)]
+          [:div.versions
+           [:h3 "Versions " [:span.count (count versions)]]
+           (project-version-list versions)])
         [:div.dependents
          [:h3 "Dependents (current and past) "
           [:span.count (count (node :dependents))]]
-         (if (zero? (count (node :dependents)))
-           [:p.none "None"]
-           [:ul.dep-list
-            (for [aid (sort (node :dependents))]
-              [:li (link-to (name aid) (h (name aid)))])
-            [:span.clear]])]]))))
-
-(defn render-coord [coord]
-  (let [[name ver] (apply lein-coord coord)]
-    (str name " " ver)))
+         (project-dep-list (sort (node :dependents)))]]))))
 
 (defn project-version-detail [gid aid ver]
   (let [coord (lein-coord gid aid ver)
@@ -124,29 +135,19 @@
     (when node
       (page
        (render-coord coord)
-       [:div.project-detail
-        [:div.overview
-         [:p.description "Main project: " [:a {:href (str "/" (url-encode (name aid)))
-                                               :id "project-link"}
-                                           (name aid)]]
-         ;; TODO: show github/clojars links
-         [:div.clear]]
+       [:div.project-detail.version-detail
+        (project-overview
+         (assoc node
+           :description (html "Main project: "
+                              [:a {:href (str "/" (url-encode (name aid)))
+                                   :id "project-link"}
+                               (name aid)])))
         [:div.dependencies
          [:h3 "Dependencies " [:span.count (count (node :dependencies))]]
-         (if (zero? (count (node :dependencies)))
-           [:p.none "None"]
-           [:ul.dep-list.ver
-            (for [coord (node :dependencies)]
-              [:li (link-to (coord-url coord) (h (render-coord coord)))])
-            [:span.clear]])]
+         (project-dep-list (node :dependencies))]
         [:div.dependents
          [:h3 "Dependents " [:span.count (count (node :dependents))]]
-         (if (zero? (count (node :dependents)))
-           [:p.none "None"]
-           [:ul.dep-list.ver
-            (for [coord (sort (node :dependents))]
-              [:li (link-to (coord-url coord) (h (render-coord coord)))])
-            [:span.clear]])]]))))
+         (project-dep-list (sort (node :dependents)))]]))))
 
 (defn project-list [pids]
   [:ul.project-list
