@@ -32,6 +32,7 @@
            [:p#tagline "A browsable dependency graph of the Clojure ecosystem"]
            (form-to [:get "/_search"]
                     [:input {:name "query" :size 30 :id "query"
+                             :value (get-in *req* [:query-params "query"])
                              :type "search" :placeholder "Search"}] " "
                              (submit-button "Go"))]]
          [:div#content-shell
@@ -121,8 +122,9 @@
        (render-coord coord)
        [:div.project-detail
         [:div.overview
-         [:p.description "Main project: " (link-to (str "/" (url-encode (name aid)))
-                                                   (name aid))]
+         [:p.description "Main project: " [:a {:href (str "/" (url-encode (name aid)))
+                                               :id "project-link"}
+                                           (name aid)]]
          ;; TODO: show github/clojars links
          [:div.clear]]
         [:div.dependencies

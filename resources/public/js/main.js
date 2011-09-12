@@ -9,19 +9,36 @@ $(function() {
 
     var historyCache = {};
     historyCache[location.href] = $("#content").clone().wrap("<div>").parent().html();
+
+    function parseQueryString() {
+        var r = /([^&=]+)=?([^&]*)/g,
+            d = function (s) { return decodeURIComponent(s.replace(/\+/, " ")); },
+            q = window.location.search.substring(1),
+            qs = {},
+            e;
+        while (e = r.exec(q))
+            qs[d(e[1])] = d(e[2]);
+        return qs;
+    }
     
     // Assumes root element of content has an ID
     function replaceContent(content) {
         var $content = $(content);
         // TODO: set page title if present
         $("#" + $content.attr("id")).replaceWith($content);
+        
+        var qs = parseQueryString();
+        $("#query").val(qs.query);
+
+        $(window).scrollTop(0);
     }
     
     var ajaxLinks = ["#header h1 a",
                      ".paginated p.nav a",
                      "ul.project-list a",
                      "ul.dep-list a",
-                     "ul.version-list a"];
+                     "ul.version-list a",
+                     "#project-link"];
     $(ajaxLinks.join(", ")).live("click", function() {
         if ($(this).hasClass("inactive"))
             return false;
@@ -29,16 +46,21 @@ $(function() {
         return false;
     });
 
+    $("#header form").submit(function() {
+        var form = $(this),
+            url = form.attr("action") + "?" + form.serialize();
+        History.pushState(null, null, url);
+        return false;
+    });
+
     History.Adapter.bind(window, "statechange", function() {
         if (historyCache[location.href]) {
             replaceContent(historyCache[location.href]);
-            $(window).scrollTop(0);
         } else {
             var params = {_: (new Date().getTime())}; // cache buster            
             $.get(location.href, params, function(data) {
                 historyCache[location.href] = data;
                 replaceContent(data);
-                $(window).scrollTop(0);
             });
         }
     });
