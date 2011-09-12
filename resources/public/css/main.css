@@ -302,7 +302,15 @@ table { border-collapse: collapse; border-spacing: 0; }
     color: #fff;
     border: none;
     border-radius: 5px;
-    padding: 5px 10px;
+    padding: 4px 10px;
+}
+#header .inner form input[type=submit]:hover {
+    background: #888;
+}
+#query {
+    border: none;
+    border-radius: 10px;
+    padding: 4px 10px;
 }
 #header h1 {
     margin: 0;
@@ -334,10 +342,10 @@ table { border-collapse: collapse; border-spacing: 0; }
     background: #e8e8e8;
     background: #e8e8e8 -webkit-gradient(linear, left top, 0 50, from(#f8f8f8), to(#e8e8e8)) no-repeat;
     background: -moz-linear-gradient(top,#f8f8f8,#e8e8e8 50px);
+    margin: 1em 0 1em 0;
 }
 #content #page-title {
     font-weight: bold;
-    margin: 1em 0 1em 0;
 }
 #content h3 {
     font-size: 1.2em;
