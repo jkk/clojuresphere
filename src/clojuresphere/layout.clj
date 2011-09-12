@@ -22,14 +22,14 @@
        [:meta {:http-equiv "content-type" :content "text/html; charset=utf-8"}]
        [:meta {:http-equiv "X-UA-Compatible" :content "IE=edge"}]
        [:title (str (when title (str (h title) " - ")) site-name)]
-       [:meta {:name "description" :content "Browse the entire Clojure ecosystem"}]
+       [:meta {:name "description" :content "Browse the open-source Clojure ecosystem"}]
        (include-css "/css/main.css")
        [:body
         [:div#page-shell
          [:div#header
           [:div.inner
            [:h1 (link-to "/" site-name)]
-           [:p#tagline "A browsable dependency graph of the Clojure ecosystem"]
+           [:p#tagline "Browse the open-source Clojure ecosystem"]
            (form-to [:get "/_search"]
                     [:input {:name "query" :size 30 :id "query"
                              :value (get-in *req* [:query-params "query"])
