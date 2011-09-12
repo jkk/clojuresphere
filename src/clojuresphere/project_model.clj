@@ -1,10 +1,14 @@
 (ns clojuresphere.project-model
-  (:use [clojuresphere.util :only [read-gz-resource]]))
+  (:use [clojuresphere.util :only [read-gz-resource]]
+        [clojure.java.io :as io]))
 
 ;; we don't need no stinkin database
 
 (def graph-data-file "project_graph.clj.gz")
 (defonce graph (read-gz-resource graph-data-file))
+(defonce project-count (count graph))
+(defonce last-updated (-> graph-data-file
+                          io/resource io/file .lastModified (java.util.Date.)))
 (defonce most-used (->> graph
                         (sort-by (comp count :dependents val) >)
                         keys vec))

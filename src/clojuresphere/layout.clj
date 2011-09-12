@@ -6,8 +6,7 @@
                                     javascript-tag link-to url]]
         [hiccup.form-helpers :only [form-to submit-button]]
         [hiccup.core :only [h html]])
-  (:require [clojuresphere.project-model :as project]
-            [clojure.java.io :as io]))
+  (:require [clojuresphere.project-model :as project]))
 
 (def site-name "ClojureSphere")
 
@@ -42,9 +41,8 @@
           [:p#copyright "Made by "
            (link-to "http://jkkramer.com" "Justin Kramer") " - "
            (link-to "http://twitter.com/jkkramer" "@jkkramer")]
-          [:p#stats (str (count project/graph) " projects indexed "
-                         (-> project/graph-data-file
-                             io/resource io/file .lastModified (java.util.Date.)))]]]
+          [:p#stats (str project/project-count " projects indexed "
+                         project/last-updated)]]]
         (include-js "/js/jquery.js"
                     "/js/history.adapter.jquery.js"
                     "/js/history.js"
