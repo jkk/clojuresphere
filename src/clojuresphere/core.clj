@@ -16,11 +16,9 @@
 
   (GET "/" {{offset "offset"} :params}
        (layout/top-projects (parse-int offset 0)))
-  (GET ["/:pid" :pid #"[a-zA-Z0-9\-\.\_]+"] [pid] (layout/project-detail pid))
-  (GET ["/:aid/:gid/:ver"
-        :aid #"[a-zA-Z0-9\-\.\_]+"
-        :gid #"[a-zA-Z0-9\-\.\_]+"
-        :ver #"[a-zA-Z0-9\-\.\_]+"]
+  
+  (GET ["/:pid" :pid #"[^/]+"] [pid] (layout/project-detail pid))
+  (GET ["/:aid/:gid/:ver" :aid #"[^/]+" :gid #"[^/]+" :ver #"[^/]+"]
        [gid aid ver]
        (layout/project-version-detail gid aid ver))
 
