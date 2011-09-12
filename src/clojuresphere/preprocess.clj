@@ -84,16 +84,16 @@
          :let [project (fetch-repo-project repo)]
          :when project]
      (assoc project
-       :github {:url (repo :url)
-                :owner (repo :owner)
-                :name (repo :name)
-                :description (repo :description)
-                :forks (repo :forks)
-                :watchers (repo :watchers)
-                :size (repo :size)
-                :created (repo :created_at)
-                :pushed (repo :pushed_at)
-                :open-issues (repo :open_issues)}))))
+       :github {:url (:url repo)
+                :owner (:owner repo)
+                :name (:name repo)
+                :description (:description repo)
+                :forks (:forks repo)
+                :watchers (:watchers repo)
+                :size (:size repo)
+                :created (:created_at repo)
+                :pushed (:pushed_at repo)
+                :open-issues (:open_issues repo)}))))
 
 ;; clojars
 
@@ -107,7 +107,7 @@
                        project (parse-pom-xml pom-xml)]
                    (assoc (dissoc project :description)
                      :clojars {:description (project :description)
-                               :url (str "http://clojars.org/" (project :name))}))
+                               :url (str "http://clojars.org/" (:name project))}))
                  (catch Exception _ nil)))))))
 
 (comment
@@ -138,7 +138,7 @@
      (for [p (concat github-projects clojars-projects)
            :let [coord (apply lein-coord (map p [:group-id :artifact-id :version]))]
            k [:github :clojars]
-           :let [info (p k)]
+           :let [info (k p)]
            :when info]
        [(-> p :artifact-id keyword) coord k info])))
 
@@ -161,7 +161,7 @@
                         (fnil conj #{}) p-coord))))
      g
      (for [p (concat github-projects clojars-projects)
-           coord (concat (get p :dependencies) (get p :dev-dependencies))]
+           coord (concat (:dependencies p) (:dev-dependencies p))]
        (concat (map p [:group-id :artifact-id :version])
                [coord]))))
 
@@ -185,10 +185,10 @@
      (fn [g [pid best-gh clojars]]
        (update-in
         g [pid] assoc
-        :description (or (get best-gh :description) (get clojars :description))
-        :github-url (get best-gh :url)
-        :clojars-url (get clojars :url)
-        :updated (let [pushed (get best-gh :pushed)] ;TODO: clojars?
+        :description (or (:description best-gh) (:description clojars))
+        :github-url (:url best-gh)
+        :clojars-url (:url clojars)
+        :updated (let [pushed (:pushed best-gh)] ;TODO: clojars?
                    (if (seq pushed)
                      (/ (.getTime (java.util.Date. pushed)) 1000)
                      0))))

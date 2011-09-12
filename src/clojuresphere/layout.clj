@@ -72,15 +72,15 @@
 
 (defn project-overview [node]
   [:div.overview
-   [:p.description (node :description)]
-   (when (node :github-url)
-     [:p.github (link-to (node :github-url) "GitHub")])
-   (when (node :clojars-url)
-     [:p.clojars (link-to (node :clojars-url) "Clojars")])
-   (when (node :watchers)
-     [:p.watchers [:span.label "Watchers"] " " [:span.value (node :watchers)]])
-   (when (node :forks)
-     [:p.forks [:span.label "Forks"] " " [:span.value (node :forks)]])
+   [:p.description (:description node)]
+   (when (:github-url node)
+     [:p.github (link-to (:github-url node) "GitHub")])
+   (when (:clojars-url node)
+     [:p.clojars (link-to (:clojars-url node) "Clojars")])
+   (when (:watchers node)
+     [:p.watchers [:span.label "Watchers"] " " [:span.value (:watchers node)]])
+   (when (:forks node)
+     [:p.forks [:span.label "Forks"] " " [:span.value (:forks node)]])
    [:div.clear]])
 
 (defn project-dep-list [deps]
@@ -119,16 +119,16 @@
         (project-overview node)
         [:div.dependencies
          [:h3 "Dependencies (current and past) "
-          [:span.count (count (node :dependencies))]]
-         (project-dep-list (node :dependencies))]
+          [:span.count (count (:dependencies node))]]
+         (project-dep-list (:dependencies node))]
         (let [versions (project/most-used-versions pid)]
           [:div.versions
            [:h3 "Versions " [:span.count (count versions)]]
            (project-version-list versions)])
         [:div.dependents
          [:h3 "Dependents (current and past) "
-          [:span.count (count (node :dependents))]]
-         (project-dep-list (sort (node :dependents)))]]))))
+          [:span.count (count (:dependents node))]]
+         (project-dep-list (sort (:dependents node)))]]))))
 
 (defn project-version-detail [gid aid ver]
   (let [coord (lein-coord gid aid ver)
@@ -145,11 +145,11 @@
                                    :id "project-link"}
                                (name aid)])))
         [:div.dependencies
-         [:h3 "Dependencies " [:span.count (count (node :dependencies))]]
-         (project-dep-list (node :dependencies))]
+         [:h3 "Dependencies " [:span.count (count (:dependencies node))]]
+         (project-dep-list (:dependencies node))]
         [:div.dependents
-         [:h3 "Dependents " [:span.count (count (node :dependents))]]
-         (project-dep-list (sort (node :dependents)))]]))))
+         [:h3 "Dependents " [:span.count (count (:dependents node))]]
+         (project-dep-list (sort (:dependents node)))]]))))
 
 (defn project-list [pids]
   [:ul.project-list
@@ -161,15 +161,15 @@
        (name pid)
        [:span.name (h (name pid))]
        [:span.stat.dep-count
-        [:span.label "Dependents"] " " [:span.value (count (node :dependents))]]
+        [:span.label "Dependents"] " " [:span.value (count (:dependents node))]]
        [:span.stat.versions
-        [:span.label "Versions"] " " [:span.value (count (node :versions))]]
-       (when (node :watchers)
+        [:span.label "Versions"] " " [:span.value (count (:versions node))]]
+       (when (:watchers node)
          [:span.stat.watchers
-          [:span.label "Watchers"] " "[:span.value (node :watchers)]])
-       (when (node :forks)
+          [:span.label "Watchers"] " "[:span.value (:watchers node)]])
+       (when (:forks node)
          [:span.stat.forks
-          [:span.label "Forks"] " " [:span.value (node :forks)]]))])
+          [:span.label "Forks"] " " [:span.value (:forks node)]]))])
    [:span.clear]])
 
 (def per-page 40)
