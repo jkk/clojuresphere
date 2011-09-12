@@ -49,6 +49,7 @@
          [:div#content-shell
           content]
          (page-footer)]
+        (javascript-tag (str "var Globals = {siteName: \"" site-name "\"};"))
         (include-js "/js/jquery.js"
                     "/js/history.adapter.jquery.js"
                     "/js/history.js"

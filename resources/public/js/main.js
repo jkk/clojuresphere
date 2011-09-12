@@ -24,8 +24,13 @@ $(function() {
     // Assumes root element of content has an ID
     function replaceContent(content) {
         var $content = $(content);
-        // TODO: set page title if present
         $("#" + $content.attr("id")).replaceWith($content);
+
+        var title = $content.find("#page-title");
+        if (title.length && title.text() != Globals.siteName)
+            document.title = title.text() + " - " + Globals.siteName;
+        else
+            document.title = Globals.siteName;
         
         var qs = parseQueryString();
         $("#query").val(qs.query);
