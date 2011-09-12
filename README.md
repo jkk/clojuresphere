@@ -16,19 +16,20 @@ Browsable dependency graph of Clojure projects. See it live here: http://clojure
 - separate/distinguish dev dependencies
   - different color or icon?
   - toggle to filter out entirely?
-- ~~attach a "last updated" date to projects, when available~~
-- ~~move stats, last modified calc to model~~
 - css
   - use clearfix
   - bigger click target for page heading
+- show updated date in list & detail
+  - should it be relative to last preprocess date?
+    - might need a note to clarify
 - handle ajax 404
-- ~~remove _search url, pass query to /~~
 - breadcrumb nav?
 - show overall stats in sidebar
   - total projects
   - from github, clojars
   - # of projects over time
-- tabs on home for top / recently-updated / random
+- "activity" field, to indicate how active a github project is
+  - N commits in last month?
 - dependents sort: most-used, last updated, alphabetical
 - sort dependencies by most-used
 - show a project's transitive dependencies
@@ -44,7 +45,6 @@ Browsable dependency graph of Clojure projects. See it live here: http://clojure
   - http://maven.apache.org/pom.html
   - special case for pom.contrib?
 - look for project.clj in sub-dirs (e.g., ring)
-- ~~clean up layout.clj code~~
 - put controller fns between routes & layout fns?
 - show github/clojars links for specific project versions
 - toggle to exclude historical versions from counts?
