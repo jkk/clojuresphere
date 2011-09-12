@@ -391,11 +391,13 @@ ul.project-list li a {
     margin: 0 5px 5px 0;
     float: left;
     background: #f8f8f8;
+    background: #f8f8f8 -webkit-gradient(linear, left top, 0 70, from(#fcfcfc), to(#f4f4f4)) no-repeat;
+    background: -moz-linear-gradient(top,#fcfcfc,#f4f4f4 70px);
     padding: 0.5em 0 0.5em 0.75em;
     width: 208px;
     height: 4em;
     border-radius: 0.5em;
-    border-bottom: 1px solid #eee;
+    border: 1px solid #f4f4f4;
 }
 ul.project-list li a:hover {
     text-decoration: none;
@@ -468,6 +470,8 @@ ul.dep-list li a {
     float: left;
     height: 1.3em;
     background: #f8f8f8;
+    background: #f8f8f8 -webkit-gradient(linear, left top, 0 50, from(#fafafa), to(#f2f2f2)) no-repeat;
+    background: -moz-linear-gradient(top,#fafafa,#f2f2f2 50px);
     padding: 5px 10px;
     width: 200px;
     margin: 0 5px 0.25em 0;
@@ -490,6 +494,8 @@ ul.version-list {
 ul.version-list li a {
     float: left;
     background: #f8f8f8;
+    background: #f8f8f8 -webkit-gradient(linear, left top, 0 50, from(#fafafa), to(#f2f2f2)) no-repeat;
+    background: -moz-linear-gradient(top,#fafafa,#f2f2f2 50px);
     width: 425px;
     padding: 5px 10px;
     margin: 0 5px 0.25em 0;
