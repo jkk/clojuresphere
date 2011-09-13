@@ -2,6 +2,21 @@
   (:require [clojure.java.io :as io]
             [clj-json.core :as json]))
 
+(def ^:dynamic *req* nil)
+
+(defn wrap-request [handler]
+  (fn [req]
+    (binding [*req* req]
+      (handler req))))
+
+(defn wrap-ajax-detect [handler]
+  (fn [req]
+    (handler (assoc req
+               :ajax? (= "XMLHttpRequest"
+                         (get-in req [:headers "x-requested-with"]))))))
+
+;;
+
 (defn qualify-name [name]
   (let [name (str name)
         name-parts (.split name "/")]

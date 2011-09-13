@@ -1,5 +1,6 @@
 (ns clojuresphere.core
-  (:use [clojuresphere.util :only [memory-stats parse-int]]
+  (:use [clojuresphere.util :only [memory-stats parse-int wrap-request
+                                   wrap-ajax-detect]]
         [compojure.core :only [defroutes GET POST ANY]]
         [ring.util.response :only [response]]
         [ring.middleware.params :only [wrap-params]]
@@ -24,19 +25,6 @@
 
   (route/resources "/")
   (route/not-found (layout/not-found)))
-
-(def ^:dynamic *req* nil)
-
-(defn wrap-request [handler]
-  (fn [req]
-    (binding [*req* req]
-      (handler req))))
-
-(defn wrap-ajax-detect [handler]
-  (fn [req]
-    (handler (assoc req
-               :ajax? (= "XMLHttpRequest"
-                         (get-in req [:headers "x-requested-with"]))))))
 
 (def app (-> #'routes
              wrap-request
