@@ -81,3 +81,25 @@
 (defn safe-read-string [s]
   (binding [*read-eval* false]
     (read-string s)))
+
+(defn date->seconds [date]
+  (cond
+   (instance? java.util.Date date)
+   (long (/ (.getTime date) 1000))
+
+   (string? date)
+   (try
+     (long (/ (.getTime (java.util.Date. date)) 1000))
+     (catch Exception _ nil))
+   
+   (and (number? date) (> date (.getTime (java.util.Date. "1/1/3000"))))
+   (long (/ date 1000))
+
+   (number? date)
+   date))
+
+(defn date->days-ago [date]
+  (let [now-days (long (/ (.getTime (java.util.Date.)) 1000 60 60 24))
+        date-days (long (/ (date->seconds date) 60 60 24))]
+    (- now-days date-days)))
+

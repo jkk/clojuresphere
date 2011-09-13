@@ -1,7 +1,7 @@
 (ns clojuresphere.layout
   (:use [clojuresphere.core :only [*req*]]
         [clojuresphere.util :only [url-encode qualify-name maven-coord lein-coord
-                                   parse-int]]
+                                   parse-int date->days-ago]]
         [clojure.string :only [capitalize]]
         [hiccup.page-helpers :only [html5 include-js include-css
                                     javascript-tag link-to url]]
@@ -73,15 +73,20 @@
 (defn project-overview [node]
   [:div.overview
    [:p.description (:description node)]
-   (when (:github-url node)
-     [:p.github (link-to (:github-url node) "GitHub")])
-   (when (:clojars-url node)
-     [:p.clojars (link-to (:clojars-url node) "Clojars")])
-   (when (:watchers node)
-     [:p.watchers [:span.label "Watchers"] " " [:span.value (:watchers node)]])
-   (when (:forks node)
-     [:p.forks [:span.label "Forks"] " " [:span.value (:forks node)]])
-   [:div.clear]])
+   [:div.tidbits
+    (when (:github-url node)
+      [:p.github (link-to (:github-url node) "GitHub")])
+    (when (:clojars-url node)
+      [:p.clojars (link-to (:clojars-url node) "Clojars")])
+    (when (:watchers node)
+      [:p.watchers [:span.label "Watchers"] " " [:span.value (:watchers node)]])
+    (when (:forks node)
+      [:p.forks [:span.label "Forks"] " " [:span.value (:forks node)]])
+    (when (and (:updated node) (not (zero? (:updated node))))
+      [:p.updated
+       [:span.label "Updated"] " "
+       [:span.value (date->days-ago (:updated node)) " days ago"]])
+    [:div.clear]]])
 
 (defn project-dep-list [deps]
   (if (zero? (count deps))

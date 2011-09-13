@@ -440,8 +440,7 @@ ul.project-list li .stat .value {
 .project-detail .description {
     font-size: 1.1em;
 }
-.project-detail .github, .project-detail .clojars,
-.project-detail .watchers, .project-detail .forks {
+.project-detail .tidbits p {
     float: left;
     margin: 0 1em 0 0;
     padding: 0 1em 0 0;
