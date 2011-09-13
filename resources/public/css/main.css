@@ -350,6 +350,18 @@ table { border-collapse: collapse; border-spacing: 0; }
 }
 #content h3 {
     font-size: 1.2em;
+    clear: both;
+    background: #e8e8e8;
+    color: #333;
+    padding: 0.5em;
+    border-radius: 0.5em;
+    font-weight: normal;
+    border: 1px solid #e8e8e8;
+    border-bottom: 1px solid #ccc;
+    background: #ddd;
+    background: #ddd -webkit-gradient(linear, left top, 0 40, from(#f4f4f4), to(#ddd)) no-repeat;
+    background: -moz-linear-gradient(top,#f4f4f4,#ddd 40px);
+    margin: 1em 0 1em 0;
 }
 #footer {
     width: 900px;
@@ -534,6 +546,9 @@ ul.project-list li .stat .value {
     font-weight: normal;
     color: #888;
     margin: 0 0 0 0.5em;
+}
+.dependencies, .versions, .dependents {
+    margin-top: 2em;
 }
 ul.dep-list {
     margin: 0;
