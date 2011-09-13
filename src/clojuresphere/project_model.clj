@@ -6,7 +6,9 @@
 
 (def graph-data-file "project_graph.clj.gz")
 (defonce graph (read-gz-resource graph-data-file))
-(def project-count (count graph))
+(def project-count (count (filter #(or (:github-url %) (:clojars-url %)) (vals graph))))
+(def github-count (count (filter :github-url (vals graph))))
+(def clojars-count (count (filter :clojars-url (vals graph))))
 (def last-updated (-> graph-data-file
                           io/resource io/file .lastModified (java.util.Date.)))
 

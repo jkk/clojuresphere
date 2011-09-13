@@ -1,7 +1,6 @@
 (ns clojuresphere.layout
-  (:use [clojuresphere.core :only [*req*]]
-        [clojuresphere.util :only [url-encode qualify-name maven-coord lein-coord
-                                   parse-int date->days-ago]]
+  (:use [clojuresphere.util :only [url-encode qualify-name maven-coord lein-coord
+                                   parse-int date->days-ago *req*]]
         [clojure.string :only [capitalize]]
         [hiccup.page-helpers :only [html5 include-js include-css
                                     javascript-tag link-to url]]
@@ -27,9 +26,7 @@
    [:p#links (link-to "http://github.com/jkk/clojuresphere" "GitHub")]
    [:p#copyright "Made by "
     (link-to "http://jkkramer.com" "Justin Kramer") " - "
-    (link-to "http://twitter.com/jkkramer" "@jkkramer")]
-   [:p#stats (str project/project-count " projects indexed "
-                  project/last-updated)]])
+    (link-to "http://twitter.com/jkkramer" "@jkkramer")]])
 
 (defn page [title & body]
   (let [content [:div#content
@@ -176,7 +173,7 @@
                                        [:span.days-ago-label " days ago"]]]))])
    [:span.clear]])
 
-(def per-page 40)
+(def per-page 30)
 
 (defn neg-guard [x]
   (if (neg? x) 0 x))
@@ -220,14 +217,27 @@
          title (if (seq query)
                  (str "Search: " (h query))
                  "Projects")]
-     [:div#projects
-      [:h2 title]
-      [:div.sort-links
-       "Sort by"
-       (for [s ["dependents" "watchers" "updated" "random"]]
-         (let [a-tag (if (= s sort) :a.active :a)]
-           [a-tag {:href (url "/" {:sort s :query query})} (capitalize s)]))]
-      (paginated-list pids (if random? 0 offset))])))
+     [:div
+      [:div#projects
+       [:h2 title]
+       [:div.sort-links
+        "Sort by"
+        (for [s ["dependents" "watchers" "updated" "random"]]
+          (let [a-tag (if (= s sort) :a.active :a)]
+            [a-tag {:href (url "/" {:sort s :query query})} (capitalize s)]))]
+       (paginated-list pids (if random? 0 offset))]
+      [:div#stats
+       [:h3 "Stats"]
+       [:dl
+        [:dt "Projects"]
+        [:dd project/project-count]
+        [:dt "GitHub projects"]
+        [:dd project/github-count]
+        [:dt "Clojars projects"]
+        [:dd project/clojars-count]
+        [:dt "Last indexed"]
+        [:dd#last-indexed (str project/last-updated)]]]
+      [:div.clear]])))
 
 (defn not-found []
   (page

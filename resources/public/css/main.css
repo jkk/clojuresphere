@@ -295,7 +295,7 @@ table { border-collapse: collapse; border-spacing: 0; }
 #header .inner form {
     position: absolute;
     top: 40px;
-    right: 2em;
+    right: 1em;
 }
 #header .inner form input[type=submit] {
     background: #777;
@@ -353,7 +353,7 @@ table { border-collapse: collapse; border-spacing: 0; }
 }
 #footer {
     width: 900px;
-    margin: 2em auto;
+    margin: 1em auto;
     padding: 1em 0 4em 0;
     border-top: 2px solid #aaa;
 }
@@ -372,16 +372,36 @@ table { border-collapse: collapse; border-spacing: 0; }
 #footer a {
     color: #888;
 }
-#footer #stats {
-    float: right;
-    margin: 0 2em 0 0;
-}
 
 .clear {
     display: block;
     clear: both;
 }
 
+#projects {
+    width: 650px;
+    position: relative;
+    float: left;
+}
+#projects .sort-links {
+    position: absolute;
+    top: 2.5em;
+    right: 1.5em;
+    color: #666;
+}
+#projects .sort-links a {
+    border-left: 1px solid #ccc;
+    margin: 0 0 0 10px;
+    padding: 0 0 0 10px;
+}
+#projects .sort-links a:first-child {
+    border: none;
+    padding: 0;
+}
+#projects .sort-links .active {
+    font-weight: bold;
+    color: #222;
+}
 ul.project-list {
     list-style-type: none;
     margin: 0;
@@ -393,7 +413,7 @@ ul.project-list li a {
     float: left;
     background: #fff;
     padding: 0.5em 0 0.5em 0.75em;
-    width: 200px;
+    width: 199px;
     height: 4em;
     border-radius: 0.5em;
     border: 1px solid #eee;
@@ -436,7 +456,50 @@ ul.project-list li .stat .value {
     clear: left;
     float: left;
 }
-
+#stats {
+    width: 240px;
+    margin: 1.5em 0 0 10px;
+    float: right;
+    min-height: 60em;
+}
+#stats h3 {
+    clear: both;
+    background: #e8e8e8;
+    color: #333;
+    padding: 0.5em;
+    border-radius: 0.5em;
+    font-size: 1.5em;
+    font-weight: normal;
+    border: 1px solid #e8e8e8;
+    border-bottom: 1px solid #ccc;
+    background: #ddd;
+    background: #ddd -webkit-gradient(linear, left top, 0 50, from(#f4f4f4), to(#ddd)) no-repeat;
+    background: -moz-linear-gradient(top,#f4f4f4,#ddd 50px);
+    margin: 0 0 1em 0;
+}
+#stats dl {
+    margin: 1em 0;
+    padding: 1em;
+    color: #666;
+    background: #fdfdfd;
+    border-radius: 1em;
+    border-bottom: 2px solid #ddd;
+}
+#stats dt {
+    margin: 0;
+    color: #888;
+}
+#stats dd {
+    margin: 0.25em 0 0.5em 0;
+    padding: 0 0 0.5em 0;
+    font-size: 1.2em;
+    font-weight: bold;
+    border-bottom: 1px dotted #ddd;
+}
+#stats dd#last-indexed {
+    font-size: 1em;
+    border-bottom: none;
+}
 .project-detail .overview {
     background: #fff;
     border-radius: 1em;
@@ -534,6 +597,13 @@ p.refresh a, p.nav a {
     float: right;
     margin: 0 2em 1em 0;
 }
+p.nav a.next {
+    padding: 5px 20px;
+    margin-right: 1em;
+}
+p.nav a.prev {
+    margin-right: 1em;
+}
 a.button {
     padding: 5px 10px;
     background: #cdf;
@@ -542,7 +612,7 @@ a.button {
     color: #fff;
 }
 a.button.inactive {
-    background: #888;
+    background: #999;
     color: #ddd;
     cursor: default;
 }
@@ -552,33 +622,6 @@ a.button:hover {
     text-decoration: none;
 }
 a.button.inactive:hover {
-    background: #888;
+    background: #999;
     color: #ddd;
-}
-a.next {
-    padding: 5px 20px;
-}
-a.button.prev {
-    margin-right: 1em;
-}
-#projects {
-    position: relative;
-}
-#projects .sort-links {
-    position: absolute;
-    top: 1em;
-    right: 1em;
-}
-#projects .sort-links a {
-    border-left: 1px solid #ccc;
-    margin: 0 0 0 10px;
-    padding: 0 0 0 10px;
-}
-#projects .sort-links a:first-child {
-    border: none;
-    padding: 0;
-}
-#projects .sort-links .active {
-    font-weight: bold;
-    color: #222;
 }
