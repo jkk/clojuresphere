@@ -1,7 +1,7 @@
 (ns clojuresphere.layout
   (:use [clojuresphere.util :only [url-encode qualify-name maven-coord lein-coord
                                    parse-int date->days-ago *req*]]
-        [clojure.string :only [capitalize]]
+        [clojure.string :only [capitalize join]]
         [hiccup.page-helpers :only [html5 include-js include-css
                                     javascript-tag link-to url]]
         [hiccup.form-helpers :only [form-to submit-button]]
@@ -202,6 +202,37 @@
      offset
      (count window))))
 
+(defn projects-per-quarter-chart []
+  (let [yrange (range project/first-year (inc project/last-year))]
+    [:img#projects-per-quarter
+     {:src (url "https://chart.googleapis.com/chart"
+                {:cht "lc"
+                 :chs "214x100"
+                 :chxt "x,y"
+                 :chxl (str "0:|" (join "|" yrange) "|")
+                 :chxp (str "0," (join "," (map (partial * 4)
+                                                (range (count yrange)))))
+                 :chxr (str "0,0," (count project/quarterly-counts))
+                 :chd (str "t:" (join "," project/quarterly-counts))
+                 :chco "449966"
+                 :chm "B,eeffeebb,0,0,0"
+                 :chds "a"})}]))
+
+(defn stats []
+  [:div#stats
+   [:h3 "Stats"]
+   [:dl
+    [:dt "Projects"]
+    [:dd project/project-count]
+    [:dt "GitHub projects"]
+    [:dd project/github-count]
+    [:dt "Clojars projects"]
+    [:dd project/clojars-count]
+    [:dt "Projects per quarter (GitHub only)"]
+    [:dd (projects-per-quarter-chart)]
+    [:dt "Last indexed"]
+    [:dd#last-indexed (str project/last-updated)]]])
+
 (defn projects [query sort offset]
   (page
    nil
@@ -224,17 +255,7 @@
           (let [a-tag (if (= s sort) :a.active :a)]
             [a-tag {:href (url "/" {:sort s :query query})} (capitalize s)]))]
        (paginated-list pids (if random? 0 offset))]
-      [:div#stats
-       [:h3 "Stats"]
-       [:dl
-        [:dt "Projects"]
-        [:dd project/project-count]
-        [:dt "GitHub projects"]
-        [:dd project/github-count]
-        [:dt "Clojars projects"]
-        [:dd project/clojars-count]
-        [:dt "Last indexed"]
-        [:dd#last-indexed (str project/last-updated)]]]
+      (stats)
       [:div.clear]])))
 
 (defn not-found []

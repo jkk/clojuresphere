@@ -511,6 +511,10 @@ ul.project-list li .stat .value {
     font-weight: bold;
     border-bottom: 1px dotted #ddd;
 }
+#stats #projects-per-quarter {
+    display: block;
+    margin-top: 0.75em;
+}
 #stats dd#last-indexed {
     font-size: 1em;
     border-bottom: none;
