@@ -31,7 +31,7 @@ audio[controls], canvas, video { display: inline-block; *display: inline; *zoom:
 
 html { font-size: 100%; overflow-y: scroll; -webkit-overflow-scrolling: touch; -webkit-tap-highlight-color: rgba(0,0,0,0); -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
 
-body { margin: 0; font-size: 13px; line-height: 1.231; }
+body { margin: 0; font-size: 13px; line-height: 1.231; background: #f8f8f8; }
 
 body, button, input, select, textarea { font-family: sans-serif; color: #222; }
 
@@ -337,15 +337,16 @@ table { border-collapse: collapse; border-spacing: 0; }
     padding: 0.5em;
     border-radius: 0.5em;
     font-weight: normal;
-    border: 1px solid #eee;
-    border-bottom: 1px solid #d8d8d8;
-    background: #e8e8e8;
-    background: #e8e8e8 -webkit-gradient(linear, left top, 0 50, from(#f8f8f8), to(#e8e8e8)) no-repeat;
-    background: -moz-linear-gradient(top,#f8f8f8,#e8e8e8 50px);
+    border: 1px solid #e8e8e8;
+    border-bottom: 1px solid #ccc;
+    background: #ddd;
+    background: #ddd -webkit-gradient(linear, left top, 0 50, from(#f4f4f4), to(#ddd)) no-repeat;
+    background: -moz-linear-gradient(top,#f4f4f4,#ddd 50px);
     margin: 1em 0 1em 0;
 }
 #content #page-title {
     font-weight: bold;
+    margin: 1em 0 0 0;
 }
 #content h3 {
     font-size: 1.2em;
@@ -390,19 +391,18 @@ ul.project-list li a {
     list-style-type: none;
     margin: 0 5px 5px 0;
     float: left;
-    background: #f8f8f8;
-    background: #f8f8f8 -webkit-gradient(linear, left top, 0 70, from(#fcfcfc), to(#f4f4f4)) no-repeat;
-    background: -moz-linear-gradient(top,#fcfcfc,#f4f4f4 70px);
+    background: #fff;
     padding: 0.5em 0 0.5em 0.75em;
-    width: 180px;
+    width: 200px;
     height: 4em;
     border-radius: 0.5em;
-    border: 1px solid #f4f4f4;
+    border: 1px solid #eee;
+    border-right: 1px solid #ddd;
+    border-bottom: 1px solid #ddd;
 }
 ul.project-list li a:hover {
     text-decoration: none;
-    background: #def;
-    border-bottom: 1px solid #cdf;
+    background: #fff8cc;
 }
 ul.project-list li .name {
     display: block;
@@ -412,31 +412,45 @@ ul.project-list li .name {
     font-weight: bold;
 }
 ul.project-list li .stat {
-    margin: 0 10px 0.25em 0;
+    margin: 0 5px 0.25em 0;
     padding: 0;
     color: #888;
     float: left;
     font-size: 0.85em;
     text-transform: lowercase;
-    width: 80px;
+    width: 50px;
+}
+ul.project-list li .watchers {
+    margin-right: 10px;
 }
 ul.project-list li .updated {
-    width: auto;
+    margin-right: 0;
+    width: 80px;
 }
 ul.project-list li .stat .label {
     color: #aaa;
     margin: 0 5px 0 0;
+    float: left;
 }
 ul.project-list li .stat .value {
-    color: #666;
+    clear: left;
+    float: left;
 }
 
 .project-detail .overview {
-    padding: 0 0.5em 1em 0.5em;
+    background: #fff;
+    border-radius: 1em;
+    margin: 1em 0 2em 0;
+    padding: 0.5em 1em 1em 1em;
     border-bottom: 2px solid #ddd;
 }
 .project-detail .description {
     font-size: 1.1em;
+    margin: 0;
+    padding: 1em 0 1.5em 0;
+}
+.project-detail.version-detail .description {
+    padding: 1em 0 0.5em 0;
 }
 .project-detail .tidbits p {
     float: left;
@@ -466,18 +480,16 @@ ul.dep-list {
 ul.dep-list li a {
     float: left;
     height: 1.3em;
-    background: #f8f8f8;
-    background: #f8f8f8 -webkit-gradient(linear, left top, 0 50, from(#fafafa), to(#f2f2f2)) no-repeat;
-    background: -moz-linear-gradient(top,#fafafa,#f2f2f2 50px);
+    background: #fff;
     padding: 5px 10px;
-    width: 200px;
+    width: 198px;
     margin: 0 5px 0.25em 0;
     border-radius: 5px;
-    border-bottom: 1px solid #eee;
+    border-right: 1px solid #ddd;
+    border-bottom: 1px solid #ddd;
 }
 ul.dep-list li a:hover {
-    background: #def;
-    border-bottom: 1px solid #cdf;
+    background: #fff8cc;
     text-decoration: none;
 }
 ul.dep-list.ver li a {
@@ -490,18 +502,16 @@ ul.version-list {
 }
 ul.version-list li a {
     float: left;
-    background: #f8f8f8;
-    background: #f8f8f8 -webkit-gradient(linear, left top, 0 50, from(#fafafa), to(#f2f2f2)) no-repeat;
-    background: -moz-linear-gradient(top,#fafafa,#f2f2f2 50px);
-    width: 425px;
+    background: #fff;
+    width: 423px;
     padding: 5px 10px;
     margin: 0 5px 0.25em 0;
     border-radius: 5px;
-    border-bottom: 1px solid #eee;
+    border-right: 1px solid #ddd;
+    border-bottom: 1px solid #ddd;
 }
 ul.version-list li a:hover {
-    background: #def;
-    border-bottom: 1px solid #cdf;
+    background: #fff8cc;
     text-decoration: none;
 }
 ul.version-list li .version {
