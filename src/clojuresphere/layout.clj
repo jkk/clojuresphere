@@ -166,15 +166,14 @@
        (name pid)
        [:span.name (h (name pid))]
        [:span.stat.dep-count
-        [:span.label "Dependents"] " " [:span.value (count (:dependents node))]]
-       [:span.stat.versions
-        [:span.label "Versions"] " " [:span.value (count (:versions node))]]
+        [:span.label "Used by"] " " [:span.value (count (:dependents node))]]
        (when (:watchers node)
          [:span.stat.watchers
           [:span.label "Watchers"] " "[:span.value (:watchers node)]])
-       (when (:forks node)
-         [:span.stat.forks
-          [:span.label "Forks"] " " [:span.value (:forks node)]]))])
+       (when (and (:updated node) (not (zero? (:updated node))))
+         [:span.stat.updated
+          [:span.label "Updated"] " " [:span.value (date->days-ago (:updated node))
+                                       [:span.days-ago-label " days ago"]]]))])
    [:span.clear]])
 
 (def per-page 40)
@@ -225,7 +224,7 @@
       [:h2 title]
       [:div.sort-links
        "Sort by"
-       (for [s ["dependents" "watchers" "forks" "updated" "random"]]
+       (for [s ["dependents" "watchers" "updated" "random"]]
          (let [a-tag (if (= s sort) :a.active :a)]
            [a-tag {:href (url "/" {:sort s :query query})} (capitalize s)]))]
       (paginated-list pids (if random? 0 offset))])))
