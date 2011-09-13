@@ -19,14 +19,12 @@
              [:input {:name "query" :size 30 :id "query"
                       :value (get-in *req* [:query-params "query"])
                       :type "search" :placeholder "Search"}] " "
-                      (submit-button "Go"))]])
-
-(defn page-footer []
-  [:div#footer
-   [:p#links (link-to "http://github.com/jkk/clojuresphere" "GitHub")]
-   [:p#copyright "Made by "
-    (link-to "http://jkkramer.com" "Justin Kramer") " - "
-    (link-to "http://twitter.com/jkkramer" "@jkkramer")]])
+                      (submit-button "Go"))
+    [:div#links
+     [:span#github-link (link-to "http://github.com/jkk/clojuresphere" "GitHub")] " "
+     [:span#built-by "Built by "
+      (link-to "http://jkkramer.com" "Justin Kramer") " - "
+      (link-to "http://twitter.com/jkkramer" "@jkkramer")]]]])
 
 (defn page [title & body]
   (let [content [:div#content
@@ -46,7 +44,7 @@
          (page-header)
          [:div#content-shell
           content]
-         (page-footer)]
+         [:div#footer]]
         (javascript-tag (str "var Globals = {siteName: \"" site-name "\"};"))
         (include-js "/js/jquery.js"
                     "/js/history.adapter.jquery.js"

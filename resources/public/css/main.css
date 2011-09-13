@@ -294,7 +294,7 @@ table { border-collapse: collapse; border-spacing: 0; }
 }
 #header .inner form {
     position: absolute;
-    top: 40px;
+    top: 50px;
     right: 1em;
 }
 #header .inner form input[type=submit] {
@@ -373,16 +373,19 @@ table { border-collapse: collapse; border-spacing: 0; }
     color: #aaa;
     float: left;
 }
-#footer #links {
-    margin: 0 1em 0 0;
-    padding: 0 1em 0 0;
-    border-right: 1px solid #ddd;
-}
-#footer #copyright {
-    margin: 0;
-}
-#footer a {
+#header #links {
+    position: absolute;
+    top: 15px;
+    right: 1em;
     color: #888;
+}
+#header #links a {
+    color: #ccc;
+}
+#header #links #github-link {
+    margin: 0 10px 0 0;
+    padding: 0 10px 0 0;
+    border-right: 1px solid #666;
 }
 
 .clear {
