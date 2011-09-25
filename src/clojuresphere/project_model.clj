@@ -1,16 +1,16 @@
 (ns clojuresphere.project-model
-  (:use [clojuresphere.util :only [read-gz-resource]]
+  (:use [clojuresphere.util :only [read-resource]]
         [clojure.java.io :as io]))
 
 ;; we don't need no stinkin database
 
-(def graph-data-file "project_graph.clj.gz")
-(defonce graph (read-gz-resource graph-data-file))
+(def graph-data-file "project_graph.clj")
+(defonce graph (read-resource graph-data-file))
 (def project-count (count (filter #(or (:github-url %) (:clojars-url %)) (vals graph))))
 (def github-count (count (filter :github-url (vals graph))))
 (def clojars-count (count (filter :clojars-url (vals graph))))
 (def last-updated (-> graph-data-file
-                          io/resource io/file .lastModified (java.util.Date.)))
+                      io/resource io/file .lastModified (java.util.Date.)))
 
 (def sorted-pids
   {:dependents (->> graph (sort-by (comp count :dependents val) >) keys vec)
