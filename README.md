@@ -19,7 +19,6 @@ Browsable dependency graph of Clojure projects. See it live here: http://clojure
 - separate/distinguish dev dependencies
   - different color or icon?
   - toggle to filter out entirely?
-- bug: why is the wrong swank-clojure repo used?
 - handle ajax 404
 - breadcrumb nav?
 - "activity" field, to indicate how active a github project is

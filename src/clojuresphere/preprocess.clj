@@ -1,5 +1,5 @@
 (ns clojuresphere.preprocess
-  (:use [clj-github.repos :only [search-repos]]
+  (:use [clj-github.repos :only [search-repos show-repo-info]]
         [clojure.pprint :only [pprint]]
         [clojure.data.zip.xml :only [xml-> xml1-> text]]
         [clojuresphere.util :only [url-encode qualify-name maven-coord lein-coord
@@ -47,8 +47,21 @@
 
 (def github-auth {})
 
+(defn normalize-github-url [url]
+  (when url
+    (-> url
+        (.replaceAll "^http:" "https:")
+        (.replaceAll "/$" ""))))
+
+(defn fetch-repo [owner repo]
+  (Thread/sleep 1000) ;crude rate limit
+  (println "Fetching repo" owner repo)
+  (show-repo-info nil owner repo))
+
+;; TODO: fetch all repos in each repo's network, too
+;; OR: fetch repos mentioned in the homepage url from clojars
 (defn fetch-repos [start-page]
-  (Thread/sleep 250) ;crude rate limit
+  (Thread/sleep 1000) ;crude rate limit
   (println "Fetching page" start-page) ;FIXME: proper logging
   (search-repos
    github-auth "clojure" :language "clojure" :start-page start-page))
@@ -203,6 +216,26 @@
       (build-aggregate-info)
       (build-best-info)))
 
+;; look up github projects we haven't fetched yet based on the clojars
+;; homepage url, e.g. for swank-clojure, which is a fork and doesn't
+;; show up in the repo search
+(defn fetch-extra-github-projects [clojars-projects github-projects]
+  (let [clojars-github-urls
+        (->> clojars-projects
+             (map (comp normalize-github-url :homepage :clojars))
+             (remove nil?)
+             (filter #(re-find #"^https://github.com/" %))
+             (distinct)
+             (remove (set (map (comp :url :github) github-projects))))
+        owner-repos (map #(re-matches #"^https://github.com/([^/]+)/([^/]+)" %)
+                         clojars-github-urls)
+        extra-github-repos (doall
+                            (remove
+                             string? ;quirk of clj-github
+                             (for [[_ owner repo] owner-repos
+                                   :when (and owner repo)]
+                               (fetch-repo owner repo))))]
+    (fetch-all-repo-projects extra-github-repos)))
 
 (comment
   
@@ -213,9 +246,15 @@
   ;; rsync -av --exclude '*.jar' clojars.org::clojars clojars
 
   (def clojars-dir "/Users/tin/src/clj/clojuresphere/clojars/")
-  (def projects (concat (fetch-github-projects)
-                        (read-all-pom-projects clojars-dir)))
-  (def project-graph (build-project-graph projects))
+  (def clojars-projects (read-all-pom-projects clojars-dir))
+  (def github-projects (fetch-github-projects))
+  (def github-extra-projects (fetch-extra-github-projects
+                              clojars-projects
+                              github-projects))
+  (def project-graph (build-project-graph
+                      (concat github-projects
+                              github-extra-projects
+                              clojars-projects)))
   
   (spit (str (System/getProperty "user.dir")
              "/resources/project_graph.clj")
