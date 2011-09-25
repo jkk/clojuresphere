@@ -1,5 +1,6 @@
 (ns clojuresphere.preprocess
   (:use [clj-github.repos :only [search-repos]]
+        [clojure.pprint :only [pprint]]
         [clojure.data.zip.xml :only [xml-> xml1-> text]]
         [clojuresphere.util :only [url-encode qualify-name maven-coord lein-coord
                                    safe-read-string]])
@@ -218,5 +219,5 @@
   
   (spit (str (System/getProperty "user.dir")
              "/resources/project_graph.clj")
-        (prn-str project-graph))
+        (with-out-str (pprint project-graph)))
   )
