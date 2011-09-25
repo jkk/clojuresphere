@@ -13,6 +13,9 @@ Browsable dependency graph of Clojure projects. See it live here: http://clojure
 
 ## TODO
 
+- add rel=prev/next
+- experiment with long-running threads on heroku
+- store latest version at top-level
 - separate/distinguish dev dependencies
   - different color or icon?
   - toggle to filter out entirely?
@@ -41,7 +44,9 @@ Browsable dependency graph of Clojure projects. See it live here: http://clojure
 - put controller fns between routes & layout fns?
 - show github/clojars links for specific project versions
 - toggle to exclude historical versions from counts?
-- css
+- marker/filter for java projects?
+- styling
+  - ajax loading indicator
   - use clearfix
   - bigger click target for page heading
 
