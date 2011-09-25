@@ -95,6 +95,13 @@
                 :pushed (:pushed_at repo)
                 :open-issues (:open_issues repo)}))))
 
+(defn fetch-github-projects []
+  (let [;; special exception for clojure itself (written in java)
+        clojure-repo (first (search-repos github-auth "clojure"))
+        repos (cons clojure-repo (fetch-all-repos))]
+    (remove (comp #{"clojure-slick-rogue"} :name :github) ;broken
+            (fetch-all-repo-projects repos))))
+
 ;; clojars
 
 (defn read-all-pom-projects [clojars-dir]
@@ -110,110 +117,106 @@
                                :url (str "http://clojars.org/" (:name project))}))
                  (catch Exception _ nil)))))))
 
+;; project graph
+
+(defn build-versions [g projects]
+  (reduce
+   (fn [m [aid coord k info]]
+     (update-in m [aid :versions coord k] (fnil conj #{}) info))
+   g
+   (for [p projects
+         :let [coord (apply lein-coord (map p [:group-id :artifact-id :version]))]
+         k [:github :clojars]
+         :let [info (k p)]
+         :when info]
+     [(-> p :artifact-id keyword) coord k info])))
+
+(defn build-deps [g projects]
+  (reduce
+   (fn [g [gid aid ver dep-coord]]
+     (let [gid (or gid aid)
+           p-coord (lein-coord gid aid ver)
+           [dep-gid dep-aid dep-ver] (maven-coord dep-coord)
+           dep-coord (lein-coord dep-gid dep-aid dep-ver)
+           aid (keyword aid)
+           dep-aid (keyword dep-aid)]
+       (-> g
+           (update-in [aid :dependencies] (fnil conj #{}) dep-aid)
+           (update-in [aid :versions p-coord :dependencies]
+                      (fnil conj #{}) dep-coord)
+           (update-in [dep-aid :dependents] (fnil conj #{}) aid)
+           (update-in [dep-aid :versions dep-coord :dependents]
+                      (fnil conj #{}) p-coord))))
+   g
+   (for [p projects
+         coord (concat (:dependencies p) (:dev-dependencies p))]
+     (concat (map p [:group-id :artifact-id :version])
+             [coord]))))
+
+(defn build-aggregate-info [g]
+  (reduce
+   (fn [g [pid github]]
+     (update-in
+      g [pid] assoc
+      :watchers (+ (get-in g [pid :watchers] 0) (reduce + (map :watchers github)))
+      :forks (+ (get-in g [pid :forks] 0) (reduce + (map :forks github)))))
+   g
+   (for [[pid {:keys [versions]}] g
+         [ver {:keys [github]}] versions
+         :when (seq github)]
+     [pid github])))
+
+(defn build-best-info [g]
+  (reduce
+   (fn [g [pid best-gh clojars]]
+     (update-in
+      g [pid] assoc
+      :description (or (:description best-gh) (:description clojars))
+      :github-url (:url best-gh)
+      :clojars-url (:url clojars)
+      :updated (let [pushed (:pushed best-gh)] ;TODO: clojars?
+                 (if (seq pushed)
+                   (/ (.getTime (java.util.Date. pushed)) 1000)
+                   0))
+      :created (let [created (:created best-gh)] ;TODO: clojars?
+                 (if (seq created)
+                   (/ (.getTime (java.util.Date. created)) 1000)
+                   0))))
+   g
+   (for [[pid {:keys [versions]}] g
+         :when (seq versions)]
+     (let [githubs (for [[ver {:keys [github]}] versions
+                         gh github]
+                     gh)
+           best-gh (if (seq githubs)
+                     (apply max-key :watchers githubs)
+                     {})
+           [_ best-version] (apply max-key (comp count :dependents val) versions)
+           clojars (first (get best-version :clojars))]
+       [pid best-gh clojars]))))
+
+(defn build-project-graph [projects]
+  (-> {}
+      (build-versions projects)
+      (build-deps projects)
+      (build-aggregate-info)
+      (build-best-info)))
+
+
 (comment
-
-  ;; manual fetching process
+  
+  ;; Manual fetching process
   ;; TODO: clean up and automate this
-  
-  (def repos (fetch-all-repos))
-  
-  ;; special exception for clojure itself (written in java)
-  (def clojure-repos (search-repos github-auth "clojure"))
-  (def repos (cons (first clojure-repos) repos))
 
-  (def github-projects (fetch-all-repo-projects repos))
-
-  ;; Note: had to manually fix clojure-slick-rogue dependencies
-
+  ;; Run this first:
   ;; rsync -av --exclude '*.jar' clojars.org::clojars clojars
-  (def clojars-projects (read-all-pom-projects
-                         "/Users/tin/src/clj/clojuresphere/clojars/"))
 
-  ;; establish versions
-  (defn step1 [g]
-    (reduce
-     (fn [m [aid coord k info]]
-       (update-in m [aid :versions coord k] (fnil conj #{}) info))
-     g
-     (for [p (concat github-projects clojars-projects)
-           :let [coord (apply lein-coord (map p [:group-id :artifact-id :version]))]
-           k [:github :clojars]
-           :let [info (k p)]
-           :when info]
-       [(-> p :artifact-id keyword) coord k info])))
-
-  ;; connections among nodes & versions
-  (defn step2 [g]
-    (reduce
-     (fn [g [gid aid ver dep-coord]]
-       (let [gid (or gid aid)
-             p-coord (lein-coord gid aid ver)
-             [dep-gid dep-aid dep-ver] (maven-coord dep-coord)
-             dep-coord (lein-coord dep-gid dep-aid dep-ver)
-             aid (keyword aid)
-             dep-aid (keyword dep-aid)]
-         (-> g
-             (update-in [aid :dependencies] (fnil conj #{}) dep-aid)
-             (update-in [aid :versions p-coord :dependencies]
-                        (fnil conj #{}) dep-coord)
-             (update-in [dep-aid :dependents] (fnil conj #{}) aid)
-             (update-in [dep-aid :versions dep-coord :dependents]
-                        (fnil conj #{}) p-coord))))
-     g
-     (for [p (concat github-projects clojars-projects)
-           coord (concat (:dependencies p) (:dev-dependencies p))]
-       (concat (map p [:group-id :artifact-id :version])
-               [coord]))))
-
-  ;; total watchers/forks
-  (defn step3 [g]
-    (reduce
-     (fn [g [pid github]]
-       (update-in
-        g [pid] assoc
-        :watchers (+ (get-in g [pid :watchers] 0) (reduce + (map :watchers github)))
-        :forks (+ (get-in g [pid :forks] 0) (reduce + (map :forks github)))))
-     g
-     (for [[pid {:keys [versions]}] g
-           [ver {:keys [github]}] versions
-           :when (seq github)]
-       [pid github])))
-
-  ;; best description/url, last updated
-  (defn step4 [g]
-    (reduce
-     (fn [g [pid best-gh clojars]]
-       (update-in
-        g [pid] assoc
-        :description (or (:description best-gh) (:description clojars))
-        :github-url (:url best-gh)
-        :clojars-url (:url clojars)
-        :updated (let [pushed (:pushed best-gh)] ;TODO: clojars?
-                   (if (seq pushed)
-                     (/ (.getTime (java.util.Date. pushed)) 1000)
-                     0))
-        :created (let [created (:created best-gh)] ;TODO: clojars?
-                   (if (seq created)
-                     (/ (.getTime (java.util.Date. created)) 1000)
-                     0))))
-     g
-     (for [[pid {:keys [versions]}] g
-           :when (seq versions)]
-       (let [githubs (for [[ver {:keys [github]}] versions
-                           gh github]
-                       gh)
-             best-gh (if (seq githubs)
-                       (apply max-key :watchers githubs)
-                       {})
-             [_ best-version] (apply max-key (comp count :dependents val) versions)
-             clojars (first (get best-version :clojars))]
-         [pid best-gh clojars]))))
-
-  (def project-graph
-    (-> {} step1 step2 step3 step4))
+  (def clojars-dir "/Users/tin/src/clj/clojuresphere/clojars/")
+  (def projects (concat (fetch-github-projects)
+                        (read-all-pom-projects clojars-dir)))
+  (def project-graph (build-project-graph projects))
   
-  (spit (str (System/getProperty "user.dir") "/resources/project_graph.clj")
+  (spit (str (System/getProperty "user.dir")
+             "/resources/project_graph.clj")
         (prn-str project-graph))
-  ;; then gzip project_graph.clj
-  
   )
