@@ -40,6 +40,7 @@
      :name name
      :version version
      :description (xml1-> z :description text)
+     :url (xml1-> z :url text)
      :dependencies (vec (map :coord (deps nil)))
      :dev-dependencies (vec (map :coord (deps "test")))}))
 
@@ -102,6 +103,7 @@
                 :owner (:owner repo)
                 :name (:name repo)
                 :description (:description repo)
+                :homepage (:homepage repo)
                 :forks (:forks repo)
                 :watchers (:watchers repo)
                 :size (:size repo)
@@ -128,6 +130,7 @@
                        project (parse-pom-xml pom-xml)]
                    (assoc (dissoc project :description)
                      :clojars {:description (project :description)
+                               :homepage (:url project)
                                :url (str "http://clojars.org/" (:name project))}))
                  (catch Exception _ nil)))))))
 
@@ -188,6 +191,9 @@
       :description (or (:description best-gh) (:description clojars))
       :github-url (:url best-gh)
       :clojars-url (:url clojars)
+      :homepage (if (seq (:homepage best-gh))
+                  (:homepage best-gh)
+                  (:homepage clojars))
       :updated (let [pushed (:pushed best-gh)] ;TODO: clojars?
                  (if (seq pushed)
                    (/ (.getTime (java.util.Date. pushed)) 1000)

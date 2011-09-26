@@ -30,7 +30,6 @@ Browsable dependency graph of Clojure projects. See it live here: http://clojure
 - show a project's transitive dependencies
   - as a tree/graph? arborjs?
 - in project-version-detail, show only most-current version for a group/artifact combo?
-- show best project homepage url
 - see about getting timely sql dumps from clojars
   - created/updated timestamps
 - automate data fetching & preprocessing

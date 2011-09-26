@@ -69,6 +69,8 @@
   [:div.overview
    [:p.description (:description node)]
    [:div.tidbits
+    (when (:homepage node)
+      [:p.homepage (link-to (:homepage node) "Homepage")])
     (when (:github-url node)
       [:p.github (link-to (:github-url node) "GitHub")])
     (when (:clojars-url node)
