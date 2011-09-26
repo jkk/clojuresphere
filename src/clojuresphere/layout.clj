@@ -199,10 +199,12 @@
 
 (defn paginated-list [pids offset]
   (let [window (take per-page (drop offset pids))]
-    (paginate
-     (project-list window)
-     offset
-     (count window))))
+    (if (empty? window)
+      [:p.none "No projects found"]
+      (paginate
+       (project-list window)
+       offset
+       (count window)))))
 
 (defn projects-per-quarter-chart []
   (let [yrange (range project/first-year (inc project/last-year))]
