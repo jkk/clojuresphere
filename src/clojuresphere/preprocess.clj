@@ -243,25 +243,41 @@
                                (fetch-repo owner repo))))]
     (fetch-all-repo-projects extra-github-repos)))
 
+(defn fetch-all-projects [clojars-dir]
+  (let [clojars-projects (read-all-pom-projects clojars-dir)
+        github-projects (fetch-github-projects)
+        github-extra-projects (fetch-extra-github-projects
+                               clojars-projects
+                               github-projects)]
+    (concat github-projects
+            github-extra-projects
+            clojars-projects)))
+
 (comment
   
-  ;; Manual fetching process
+  ;; Manual fetching process. This takes a long time (~20 mins)
   ;; TODO: clean up and automate this
 
   ;; Run this first:
   ;; rsync -av --exclude '*.jar' clojars.org::clojars clojars
 
   (def clojars-dir "/Users/tin/src/clj/clojuresphere/clojars/")
-  (def clojars-projects (read-all-pom-projects clojars-dir))
-  (def github-projects (fetch-github-projects))
-  (def github-extra-projects (fetch-extra-github-projects
+
+  ;; all at once:
+  (def project-graph (build-project-graph
+                      (fetch-all-projects clojars-dir)))
+
+  ;; or, step by step:
+  #_(def clojars-projects (read-all-pom-projects clojars-dir))
+  #_(def github-projects (fetch-github-projects))
+  #_(def github-extra-projects (fetch-extra-github-projects
                               clojars-projects
                               github-projects))
-  (def project-graph (build-project-graph
+  #_(def project-graph (build-project-graph
                       (concat github-projects
                               github-extra-projects
                               clojars-projects)))
-  
+
   (spit (str (System/getProperty "user.dir")
              "/resources/project_graph.clj")
         (with-out-str (pprint project-graph)))
