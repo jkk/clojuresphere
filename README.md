@@ -13,6 +13,7 @@ Browsable dependency graph of Clojure projects. See it live here: http://clojure
 
 ## TODO
 
+- clojure version for best/latest project version
 - add rel=prev/next
 - experiment with long-running threads on heroku
 - store latest version at top-level
@@ -43,6 +44,7 @@ Browsable dependency graph of Clojure projects. See it live here: http://clojure
 - show github/clojars links for specific project versions
 - toggle to exclude historical versions from counts?
 - marker/filter for java projects?
+- user-defined tags
 - styling
   - ajax loading indicator
   - use clearfix
