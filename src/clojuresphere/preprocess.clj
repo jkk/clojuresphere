@@ -3,7 +3,7 @@
         [clojure.pprint :only [pprint]]
         [clojure.data.zip.xml :only [xml-> xml1-> text]]
         [clojuresphere.util :only [url-encode qualify-name maven-coord lein-coord
-                                   safe-read-string]])
+                                   safe-read-string fetch-doc select-els]])
   (:require [clojure.xml :as xml]
             [clojure.zip :as zip]
             [clojure.java.io :as io]))
@@ -57,22 +57,31 @@
 (defn fetch-repo [owner repo]
   (Thread/sleep 1000) ;crude rate limit
   (println "Fetching repo" owner repo)
+  (flush)
   (show-repo-info nil owner repo))
 
-;; TODO: fetch all repos in each repo's network, too
-;; OR: fetch repos mentioned in the homepage url from clojars
-(defn fetch-repos [start-page]
-  (Thread/sleep 1000) ;crude rate limit
-  (println "Fetching page" start-page) ;FIXME: proper logging
-  (search-repos
-   github-auth "clojure" :language "clojure" :start-page start-page))
+(defn crawl-repos []
+  (let [url "https://github.com/languages/Clojure/most_watched"]
+    (println "Crawling repos...")
+    (loop [page 1 repos []]
+      (print page " ") (flush)
+      (Thread/sleep 1000) ;crude rate limit
+      (let [doc (fetch-doc url :data {:page page})
+            new-repos (for [el (select-els doc "#directory td.title a")]
+                        (let [[_ owner repo-name] (.split (-> el :attrs :href) "/")]
+                          [owner repo-name]))]
+        (if (seq new-repos)
+          (recur (inc page) (into repos new-repos))
+          repos)))))
 
-(defn fetch-all-repos []
-  (->> (iterate inc 1)
-       (map fetch-repos)
-       (take-while seq)
-       (apply concat)
-       vec))
+(defn crawl-and-fetch-repos []
+  (let [repos (crawl-repos)]
+    (println "\nFound" (count repos) "repos, fetching info for each...")
+    (vec
+     (remove
+      string? ;clj-github quirk
+      (for [[owner repo-name] repos]
+        (fetch-repo owner repo-name))))))
 
 ;; TODO: some repos have multiple project.clj files (e.g., ring)
 (defn fetch-repo-project [repo]
@@ -114,7 +123,7 @@
 (defn fetch-github-projects []
   (let [;; special exception for clojure itself (written in java)
         clojure-repo (first (search-repos github-auth "clojure"))
-        repos (cons clojure-repo (fetch-all-repos))]
+        repos (cons clojure-repo (crawl-and-fetch-repos))]
     (remove (comp #{"clojure-slick-rogue"} :name :github) ;broken
             (fetch-all-repo-projects repos))))
 
@@ -237,10 +246,11 @@
                          clojars-github-urls)
         extra-github-repos (doall
                             (remove
-                             string? ;quirk of clj-github
+                             #(or (string? %) (nil? %)) ;quirk of clj-github
                              (for [[_ owner repo] owner-repos
                                    :when (and owner repo)]
-                               (fetch-repo owner repo))))]
+                               (try (fetch-repo owner repo)
+                                    (catch Exception _ nil)))))]
     (fetch-all-repo-projects extra-github-repos)))
 
 (defn fetch-all-projects [clojars-dir]
@@ -278,7 +288,10 @@
                               github-extra-projects
                               clojars-projects)))
 
+  ;; TODO: make sure it's readable before writing
+  
   (spit (str (System/getProperty "user.dir")
              "/resources/project_graph.clj")
         (with-out-str (pprint project-graph)))
+
   )

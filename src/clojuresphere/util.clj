@@ -1,6 +1,8 @@
 (ns clojuresphere.util
+  (:use [clojure.walk :only [keywordize-keys]])
   (:require [clojure.java.io :as io]
-            [clj-json.core :as json]))
+            [clj-json.core :as json])
+  (:import [org.jsoup Jsoup]))
 
 (def ^:dynamic *req* nil)
 
@@ -38,7 +40,8 @@
      (let [[gid aid] (qualify-name name)]
        (lein-coord gid aid version)))
   ([group-id artifact-id version]
-     (let [group-id (or group-id artifact-id)]
+     (let [group-id (if (and group-id (seq group-id))
+                      group-id artifact-id)]
        [(symbol (str group-id "/" artifact-id)) (str version)])))
 
 (defn memory-stats [& {:keys [gc]}]
@@ -118,3 +121,33 @@
         date-days (long (/ (date->seconds date) 60 60 24))]
     (- now-days date-days)))
 
+(defn stringify-map [m]
+  (reduce
+   (fn [m [k v]]
+     (assoc m (if (keyword? k) (name k) (str k)) (str v)))
+   {} m))
+
+(defn fetch-doc [url & {:keys [data cookies timeout method]
+                        :or {timeout 10000 data {} cookies {} method :get}}]
+  (let [c (-> (Jsoup/connect url)
+              (.userAgent "ClojureSphere")
+              (.data (stringify-map data))
+              (.timeout 10000))]
+    (doseq [[k v] (stringify-map cookies)]
+      (.cookie c k v))
+    (if (= :post method)
+      (.post c)
+      (.get c))))
+
+(defn- jsoup->clj [el]
+  (let [tag (.tagName el)
+        attrs (keywordize-keys (into {} (.attributes el)))
+        text (.ownText el)
+        children (map jsoup->clj (.children el))
+        children (if (seq text)
+                  (cons text children)
+                  children)]
+    {:tag tag :attrs attrs :children (vec children)}))
+
+(defn select-els [doc sel]
+  (map jsoup->clj (.select doc sel)))
