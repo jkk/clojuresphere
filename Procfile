@@ -1,1 +1,1 @@
-web: lein run -m clojuresphere.core
+web: lein trampoline with-profile production run -m clojuresphere.core
