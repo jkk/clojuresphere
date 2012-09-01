@@ -1,5 +1,6 @@
 (ns clojuresphere.preprocess
   (:use [tentacles.repos :only [specific-repo]]
+        [tentacles.search :only [search-repos]]
         [clojure.pprint :only [pprint]]
         [clojure.data.zip.xml :only [xml-> xml1-> text]]
         [clojuresphere.util :only [url-encode qualify-name maven-coord lein-coord
@@ -60,35 +61,27 @@
   (flush)
   (specific-repo owner repo))
 
-(defn crawl-repos []
-  (let [url "https://github.com/languages/Clojure/most_watched"]
-    (println "Crawling repos...")
-    (loop [page 1 repos []]
-      (print page " ") (flush)
-      (Thread/sleep 1000) ;crude rate limit
-      (let [doc (fetch-doc url :data {:page page})
-            new-repos (for [el (select-els doc "#directory td.title a")]
-                        (let [[_ owner repo-name] (.split (-> el :attrs :href) "/")]
-                          [owner repo-name]))]
-        (if (seq new-repos)
-          (recur (inc page) (into repos new-repos))
-          repos)))))
+(defn fetch-repos [start-page]
+  (Thread/sleep 1000) ;crude rate limit
+  (println "Fetching page" start-page) ;FIXME: proper logging
+  (search-repos "clojure" {:language "clojure" :start-page start-page}))
 
-(defn crawl-and-fetch-repos []
-  (let [repos (crawl-repos)]
-    (println "\nFound" (count repos) "repos, fetching info for each...")
-    (vec
-     (remove
-      string? ;clj-github quirk
-      (for [[owner repo-name] repos]
-        (fetch-repo owner repo-name))))))
+(defn fetch-all-repos []
+  (->> (iterate inc 1)
+       (map fetch-repos)
+       (take-while seq)
+       (apply concat)
+       vec))
 
 ;; TODO: some repos have multiple project.clj files (e.g., ring)
 (defn fetch-repo-project [repo]
-  (let [base-url (str "https://raw.github.com/"
-                 (:owner repo) "/"
-                 (:name repo) "/"
-                 "master/")
+  (let [owner (if (map? (:owner repo))
+                (:login (:owner repo))
+                (:owner repo))
+        base-url (str "https://raw.github.com/"
+                      owner "/"
+                      (:name repo) "/"
+                      "master/")
         project-url (str base-url "project.clj")
         pom-url (str base-url "pom.xml")]
     (Thread/sleep 250) ;more crude rate limiting
@@ -121,10 +114,9 @@
                 :open-issues (:open_issues repo)}))))
 
 (defn fetch-github-projects []
-  ;; Github V3 API no longer supports searching by language
-  #_(let [;; special exception for clojure itself (written in java)
-        clojure-repo (first (search-repos github-auth "clojure"))
-        repos (cons clojure-repo (crawl-and-fetch-repos))]
+  (let [;; special exception for clojure itself (written in java)
+        clojure-repo (first (search-repos "clojure"))
+        repos (cons clojure-repo (fetch-all-repos))]
     (remove (comp #{"clojure-slick-rogue"} :name :github) ;broken
             (fetch-all-repo-projects repos))))
 
@@ -266,7 +258,7 @@
 
 (comment
   
-  ;; Manual fetching process. This takes a long time (~20 mins)
+  ;; Manual fetching process. This takes a long time (like 2 hours)
   ;; TODO: clean up and automate this
 
   ;; Run this first:
