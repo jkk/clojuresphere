@@ -2,9 +2,10 @@
   (:use [clojuresphere.util :only [url-encode qualify-name maven-coord lein-coord
                                    parse-int date->days-ago *req*]]
         [clojure.string :only [capitalize join]]
-        [hiccup.page-helpers :only [html5 include-js include-css
-                                    javascript-tag link-to url]]
-        [hiccup.form-helpers :only [form-to submit-button]]
+        [hiccup.page :only [html5 include-js include-css]]
+        [hiccup.element :only [link-to javascript-tag link-to]]
+        [hiccup.form :only [form-to submit-button]]
+        [hiccup.util :only [url]]
         [hiccup.core :only [h html]])
   (:require [clojuresphere.project-model :as project]))
 
@@ -257,7 +258,8 @@
         "Sort by"
         (for [s ["dependents" "watchers" "updated" "random"]]
           (let [a-tag (if (= s sort) :a.active :a)]
-            [a-tag {:href (url "/" {:sort s :query query})} (capitalize s)]))]
+            [a-tag {:href (url "/" {:sort s :query (str query)})}
+             (capitalize s)]))]
        (paginated-list pids (if random? 0 offset))]
       (stats)
       [:div.clear]])))

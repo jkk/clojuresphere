@@ -1,5 +1,5 @@
 (ns clojuresphere.preprocess
-  (:use [clj-github.repos :only [search-repos show-repo-info]]
+  (:use [tentacles.repos :only [specific-repo]]
         [clojure.pprint :only [pprint]]
         [clojure.data.zip.xml :only [xml-> xml1-> text]]
         [clojuresphere.util :only [url-encode qualify-name maven-coord lein-coord
@@ -58,7 +58,7 @@
   (Thread/sleep 1000) ;crude rate limit
   (println "Fetching repo" owner repo)
   (flush)
-  (show-repo-info nil owner repo))
+  (specific-repo owner repo))
 
 (defn crawl-repos []
   (let [url "https://github.com/languages/Clojure/most_watched"]
@@ -121,7 +121,8 @@
                 :open-issues (:open_issues repo)}))))
 
 (defn fetch-github-projects []
-  (let [;; special exception for clojure itself (written in java)
+  ;; Github V3 API no longer supports searching by language
+  #_(let [;; special exception for clojure itself (written in java)
         clojure-repo (first (search-repos github-auth "clojure"))
         repos (cons clojure-repo (crawl-and-fetch-repos))]
     (remove (comp #{"clojure-slick-rogue"} :name :github) ;broken
