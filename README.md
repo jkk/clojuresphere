@@ -1,6 +1,6 @@
 # ClojureSphere
 
-Browsable dependency graph of Clojure projects. See it live here: http://clojuresphere.herokuapp.com/
+Browsable dependency graph of Clojure projects. See it live here: http://www.clojuresphere.com/
 
 ## Caveats
 
@@ -13,6 +13,7 @@ Browsable dependency graph of Clojure projects. See it live here: http://clojure
 
 ## TODO
 
+- move to a real database? Neo4J, other?
 - clojure version for best/latest project version
 - add rel=prev/next
 - experiment with long-running threads on heroku
@@ -52,6 +53,6 @@ Browsable dependency graph of Clojure projects. See it live here: http://clojure
 
 ## License
 
-Copyright (C) 2011 Justin Kramer
+Copyright (C) 2011-2012 Justin Kramer
 
 Distributed under the Eclipse Public License, the same as Clojure.
