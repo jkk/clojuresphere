@@ -203,11 +203,13 @@
                   (:homepage clojars))
       :updated (let [pushed (:pushed best-gh)] ;TODO: clojars?
                  (if (seq pushed)
-                   (/ (.getTime (java.util.Date. pushed)) 1000)
+                   (/ (.getTime (clojure.instant/read-instant-date pushed))
+                      1000)
                    0))
       :created (let [created (:created best-gh)] ;TODO: clojars?
                  (if (seq created)
-                   (/ (.getTime (java.util.Date. created)) 1000)
+                   (/ (.getTime (clojure.instant/read-instant-date created))
+                      1000)
                    0))))
    g
    (for [[pid {:keys [versions]}] g
