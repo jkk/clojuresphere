@@ -1,7 +1,8 @@
 (ns clojuresphere.util
   (:use [clojure.walk :only [keywordize-keys]])
   (:require [clojure.java.io :as io])
-  (:import [org.jsoup Jsoup]))
+  (:import [org.jsoup Jsoup]
+           [org.apache.maven.artifact.versioning DefaultArtifactVersion]))
 
 (def ^:dynamic *req* nil)
 
@@ -42,6 +43,20 @@
      (let [group-id (if (and group-id (seq group-id))
                       group-id artifact-id)]
        [(symbol (str group-id "/" artifact-id)) (str version)])))
+
+(defn sort-versions [versions]
+  (sort-by #(DefaultArtifactVersion. %)
+           (comp - compare)
+           versions))
+
+(defn latest-stable-coord? [[name ver] g]
+  (= ver (:stable (get g name))))
+
+(defn latest-coord? [[name ver] g]
+  (= ver (:latest (get g name))))
+
+
+;;
 
 (defn memory-stats [& {:keys [gc]}]
   "Return stats about memory availability and usage, in MB. Calls

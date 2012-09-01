@@ -3,11 +3,12 @@
         [tentacles.search :only [search-repos]]
         [clojure.pprint :only [pprint]]
         [clojure.data.zip.xml :only [xml-> xml1-> text]]
-        [clojuresphere.util :only [qualify-name lein-coord safe-read-string]])
+        [clojuresphere.util :only [qualify-name lein-coord safe-read-string
+                                   sort-versions latest-stable-coord?
+                                   latest-coord?]])
   (:require [clojure.xml :as xml]
             [clojure.zip :as zip]
-            [clojure.java.io :as io])
-  (:import org.apache.maven.artifact.versioning.DefaultArtifactVersion))
+            [clojure.java.io :as io]))
 
 ;; TODO: project.clj should actually be eval'd, not just read
 (defn parse-project-data [[defproj name version & opts]]
@@ -179,11 +180,6 @@
 (defn stable? [ver]
   (boolean (re-matches #"\d+(?:\.\d+)+" ver)))
 
-(defn sort-versions [versions]
-  (sort-by #(DefaultArtifactVersion. %)
-           (comp - compare)
-           versions))
-
 (defn get-latest [versions]
   (first (sort-versions versions)))
 
@@ -192,12 +188,6 @@
 
 (defn project-coord [project]
   (apply lein-coord (map project [:group-id :artifact-id :version])))
-
-(defn latest-stable-coord? [[name ver] g]
-  (= ver (:stable (get g name))))
-
-(defn latest-coord? [[name ver] g]
-  (= ver (:latest (get g name))))
 
 (defn count-dependents [props g & [pred]]
   (let [dep-coords (for [[_ {:keys [dependents]}] (:versions props)
