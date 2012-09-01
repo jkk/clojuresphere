@@ -193,14 +193,18 @@
 (defn project-coord [project]
   (apply lein-coord (map project [:group-id :artifact-id :version])))
 
-(defn ver-dep-count [p ver]
-  (count (get-in p [:versions ver :dependents])))
+(defn latest-stable-coord? [[name ver] g]
+  (= ver (:stable (get g name))))
 
-(defn all-dep-count [p]
-  (let [deps (for [[_ {:keys [dependents]}] (:versions p)
-                   dep dependents]
-               dep)]
-    (reduce + (map count (distinct deps)))))
+(defn latest-coord? [[name ver] g]
+  (= ver (:latest (get g name))))
+
+(defn count-dependents [props g & [pred]]
+  (let [dep-coords (for [[_ {:keys [dependents]}] (:versions props)
+                         dep-coord dependents
+                         :when (or (nil? pred) (pred dep-coord g))]
+                     dep-coord)]
+    (reduce + (map count (distinct dep-coords)))))
 
 (defn build-deps [projects]
   (reduce
@@ -210,7 +214,9 @@
          (update-in [dname :versions dver :dependents] (fnil conj #{}) coord)))
    {}
    (for [p projects
-         [dname dver] (:dependencies p)]
+         [dname dver] (concat (:dependencies p)
+                              (:dev-dependencies p)
+                              (get-in p [:profiles :dev :dependencies]))]
      (let [coord (project-coord p)
            dep-coord (lein-coord dname dver)]
        [coord dep-coord]))))
@@ -242,18 +248,30 @@
                          (assoc new-props
                            :github github
                            :watchers (:watchers github))
-                         new-props)
-             new-props (assoc new-props
-                         :latest-dep-count (ver-dep-count props latest-ver)
-                         :stable-dep-count (ver-dep-count props stable-ver)
-                         :all-dep-count (all-dep-count props))]
+                         new-props)]
          (assoc g
            name (merge props new-props))))
      g g)))
 
+(defn build-counts [g]
+  (reduce-kv
+   (fn [g name props]
+     (let [latest-ver (:latest props)
+           stable-ver (:stable props)
+           dep-counts {:latest-stable (count-dependents
+                                       props g latest-stable-coord?)
+                       :latest (count-dependents
+                                props g latest-coord?)}
+           dep-counts (assoc dep-counts
+                        :all (+ (:latest-stable dep-counts)
+                                (:latest dep-counts)))]
+       (assoc-in g [name :dependent-counts] dep-counts)))
+   g g))
+
 (defn build-project-graph [projects]
   (-> (build-deps projects)
-      (build-info projects)))
+      (build-info projects)
+      (build-counts)))
 
 (comment
   
