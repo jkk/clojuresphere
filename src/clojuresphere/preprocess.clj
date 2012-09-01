@@ -30,12 +30,17 @@
         artifact-id (xml1-> z :artifactId text)
         name (if group-id (str group-id "/" artifact-id) artifact-id)
         version (xml1-> z :version text)
-        deps (group-by :scope (for [zdep (xml-> z :dependencies :dependency)]
-                                (let [gid (xml1-> zdep :groupId text)
-                                      aid (xml1-> zdep :artifactId text)
-                                      name (if gid (str gid "/" aid) aid)]
-                                  {:coord (lein-coord name (xml1-> zdep :version text))
-                                   :scope (xml1-> zdep :scope text)})))]
+        deps (group-by :scope (for [zdep (xml-> z :dependencies :dependency)
+                                    :let [gid (xml1-> zdep :groupId text)
+                                          aid (xml1-> zdep :artifactId text)
+                                          name (if gid (str gid "/" aid) aid)
+                                          ver (xml1-> zdep :version text)]
+                                    ;; exclude deps with POM variables for now
+                                    :when (and name ver
+                                               (not (re-find #"\$\{"
+                                                             (str name ver))))]
+                                {:coord (lein-coord name ver)
+                                 :scope (xml1-> zdep :scope text)}))]
     {:group-id group-id
      :artifact-id artifact-id
      :name name
