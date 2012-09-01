@@ -7,7 +7,8 @@
                                    safe-read-string fetch-doc select-els]])
   (:require [clojure.xml :as xml]
             [clojure.zip :as zip]
-            [clojure.java.io :as io]))
+            [clojure.java.io :as io])
+  (:import org.apache.maven.artifact.versioning.DefaultArtifactVersion))
 
 ;; TODO: project.clj should actually be eval'd, not just read
 (defn parse-project-data [[defproj name version & opts]]
@@ -22,6 +23,7 @@
 ;; TODO: pom files have a crazy amount of options and can even depend
 ;; on other pom files (see poms for official clojure projects). Decide
 ;; whether it's worth figuring all that out, or if this is good enough.
+;; Maybe at least add a hack for parent poms so we can include contrib
 ;; FIXME: some dependencies use $ variables and that breaks things
 ;; (e.g., clojure-slick-rogue dependencies)
 (defn parse-pom-xml [xml]
@@ -141,96 +143,6 @@
                                :url (str "http://clojars.org/" (:name project))}))
                  (catch Exception _ nil)))))))
 
-;; project graph
-
-(defn build-versions [g projects]
-  (reduce
-   (fn [m [aid coord k info]]
-     (update-in m [aid :versions coord k] (fnil conj #{}) info))
-   g
-   (for [p projects
-         :let [coord (apply lein-coord (map p [:group-id :artifact-id :version]))]
-         k [:github :clojars]
-         :let [info (k p)]
-         :when info]
-     [(-> p :artifact-id keyword) coord k info])))
-
-(defn build-deps [g projects]
-  (reduce
-   (fn [g [gid aid ver dep-coord]]
-     (let [gid (or gid aid)
-           p-coord (lein-coord gid aid ver)
-           [dep-gid dep-aid dep-ver] (maven-coord dep-coord)
-           dep-coord (lein-coord dep-gid dep-aid dep-ver)
-           aid (keyword aid)
-           dep-aid (keyword dep-aid)]
-       (-> g
-           (update-in [aid :dependencies] (fnil conj #{}) dep-aid)
-           (update-in [aid :versions p-coord :dependencies]
-                      (fnil conj #{}) dep-coord)
-           (update-in [dep-aid :dependents] (fnil conj #{}) aid)
-           (update-in [dep-aid :versions dep-coord :dependents]
-                      (fnil conj #{}) p-coord))))
-   g
-   (for [p projects
-         coord (concat (:dependencies p) (:dev-dependencies p))]
-     (concat (map p [:group-id :artifact-id :version])
-             [coord]))))
-
-(defn build-aggregate-info [g]
-  (reduce
-   (fn [g [pid github]]
-     (update-in
-      g [pid] assoc
-      :watchers (+ (get-in g [pid :watchers] 0) (reduce + (map :watchers github)))
-      :forks (+ (get-in g [pid :forks] 0) (reduce + (map :forks github)))))
-   g
-   (for [[pid {:keys [versions]}] g
-         [ver {:keys [github]}] versions
-         :when (seq github)]
-     [pid github])))
-
-(defn build-best-info [g]
-  (reduce
-   (fn [g [pid best-gh clojars]]
-     (update-in
-      g [pid] assoc
-      :description (or (:description best-gh) (:description clojars))
-      :github-url (:url best-gh)
-      :clojars-url (:url clojars)
-      :homepage (if (seq (:homepage best-gh))
-                  (:homepage best-gh)
-                  (:homepage clojars))
-      :updated (let [pushed (:pushed best-gh)] ;TODO: clojars?
-                 (if (seq pushed)
-                   (/ (.getTime (clojure.instant/read-instant-date pushed))
-                      1000)
-                   0))
-      :created (let [created (:created best-gh)] ;TODO: clojars?
-                 (if (seq created)
-                   (/ (.getTime (clojure.instant/read-instant-date created))
-                      1000)
-                   0))))
-   g
-   (for [[pid {:keys [versions]}] g
-         :when (seq versions)]
-     (let [githubs (for [[ver {:keys [github]}] versions
-                         gh github]
-                     gh)
-           best-gh (if (seq githubs)
-                     (apply max-key :watchers githubs)
-                     {})
-           [_ best-version] (apply max-key (comp count :dependents val) versions)
-           clojars (first (get best-version :clojars))]
-       [pid best-gh clojars]))))
-
-(defn build-project-graph [projects]
-  (-> {}
-      (build-versions projects)
-      (build-deps projects)
-      (build-aggregate-info)
-      (build-best-info)))
-
 ;; look up github projects we haven't fetched yet based on the clojars
 ;; homepage url, e.g. for swank-clojure, which is a fork and doesn't
 ;; show up in the repo search
@@ -262,6 +174,87 @@
     (concat github-projects
             github-extra-projects
             clojars-projects)))
+
+;; project graph
+
+(defn stable? [ver]
+  (boolean (re-matches #"\d+(?:\.\d+)+" ver)))
+
+(defn sort-versions [versions]
+  (sort-by #(DefaultArtifactVersion. %)
+           (comp - compare)
+           versions))
+
+(defn get-latest [versions]
+  (first (sort-versions versions)))
+
+(defn get-latest-stable [versions]
+  (->> versions sort-versions (filter stable?) first))
+
+(defn project-coord [project]
+  (apply lein-coord (map project [:group-id :artifact-id :version])))
+
+(defn ver-dep-count [p ver]
+  (count (get-in p [:versions ver :dependents])))
+
+(defn all-dep-count [p]
+  (let [deps (for [[_ {:keys [dependents]}] (:versions p)
+                   dep dependents]
+               dep)]
+    (reduce + (map count (distinct deps)))))
+
+(defn build-deps [projects]
+  (reduce
+   (fn [g [[name ver :as coord] [dname dver :as dep-coord]]]
+     (-> g
+         (update-in [name :versions ver :dependencies] (fnil conj #{}) dep-coord)
+         (update-in [dname :versions dver :dependents] (fnil conj #{}) coord)))
+   {}
+   (for [p projects
+         [dname dver] (:dependencies p)]
+     (let [coord (project-coord p)
+           dep-coord (lein-coord dname dver)]
+       [coord dep-coord]))))
+
+;; For clojars info, we look at the latest stable version, but for
+;; github, we look for the most-watched (possibly unstable) version
+(defn build-info [g projects]
+  (let [pm (group-by project-coord projects)]
+    (reduce-kv
+     (fn [g name props]
+       (let [vers (keys (:versions props))
+             stable-ver (get-latest-stable vers)
+             clojars-p (first (filter :clojars (get pm [name stable-ver])))
+             github-ps (filter :github (mapcat #(get pm [name %])
+                                               vers))
+             github-p (when (seq github-ps)
+                        (apply max-key
+                               (comp :watchers :github)
+                               github-ps))
+             latest-ver (get-latest vers)
+             new-props {:latest latest-ver}
+             new-props (if stable-ver
+                         (assoc new-props :stable stable-ver)
+                         new-props)
+             new-props (if-let [clojars (:clojars clojars-p)]
+                         (assoc new-props :clojars clojars)
+                         new-props)
+             new-props (if-let [github (:github github-p)]
+                         (assoc new-props
+                           :github github
+                           :watchers (:watchers github))
+                         new-props)
+             new-props (assoc new-props
+                         :latest-dep-count (ver-dep-count props latest-ver)
+                         :stable-dep-count (ver-dep-count props stable-ver)
+                         :all-dep-count (all-dep-count props))]
+         (assoc g
+           name (merge props new-props))))
+     g g)))
+
+(defn build-project-graph [projects]
+  (-> (build-deps projects)
+      (build-info projects)))
 
 (comment
   
