@@ -1,5 +1,5 @@
 $(function() {
-
+/*
     var History = window.History;
 
     if (!History.enabled)
@@ -70,4 +70,5 @@ $(function() {
             });
         }
     });
+*/
 });
