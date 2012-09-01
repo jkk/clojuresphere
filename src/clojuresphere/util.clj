@@ -1,7 +1,6 @@
 (ns clojuresphere.util
   (:use [clojure.walk :only [keywordize-keys]])
-  (:require [clojure.java.io :as io]
-            [clj-json.core :as json])
+  (:require [clojure.java.io :as io])
   (:import [org.jsoup Jsoup]))
 
 (def ^:dynamic *req* nil)
@@ -76,18 +75,6 @@
                      io/reader
                      java.io.PushbackReader.)]
     (read in)))
-
-(defn json-resp
-  [data]
-  {:status 200
-   :headers {"Content-type" "application/json"}
-   :body (json/generate-string data)})
-
-(defn json-parse [str]
-  (try
-    (json/parse-string str)
-    (catch Exception e
-      nil)))
 
 (defn parse-int [x & [default]]
   (try (Integer/valueOf x) (catch Exception _ default)))
