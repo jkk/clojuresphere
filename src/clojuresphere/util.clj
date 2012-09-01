@@ -113,28 +113,3 @@
    (fn [m [k v]]
      (assoc m (if (keyword? k) (name k) (str k)) (str v)))
    {} m))
-
-(defn fetch-doc [url & {:keys [data cookies timeout method]
-                        :or {timeout 10000 data {} cookies {} method :get}}]
-  (let [c (-> (Jsoup/connect url)
-              (.userAgent "ClojureSphere")
-              (.data (stringify-map data))
-              (.timeout 10000))]
-    (doseq [[k v] (stringify-map cookies)]
-      (.cookie c k v))
-    (if (= :post method)
-      (.post c)
-      (.get c))))
-
-(defn- jsoup->clj [el]
-  (let [tag (.tagName el)
-        attrs (keywordize-keys (into {} (.attributes el)))
-        text (.ownText el)
-        children (map jsoup->clj (.children el))
-        children (if (seq text)
-                  (cons text children)
-                  children)]
-    {:tag tag :attrs attrs :children (vec children)}))
-
-(defn select-els [doc sel]
-  (map jsoup->clj (.select doc sel)))

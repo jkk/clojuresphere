@@ -8,6 +8,5 @@
                  [ring/ring-core "1.1.3"]
                  [ring/ring-jetty-adapter "1.1.3"]
                  [clj-http "0.5.3"]
-                 [org.jsoup/jsoup "1.6.1"]
                  [org.apache.maven/maven-artifact "3.0.4"]]
   :min-lein-version "2.0.0")
