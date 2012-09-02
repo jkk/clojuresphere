@@ -12,7 +12,7 @@
     [:div#api-overview.overview.clearfix
      [:h3 "API Format"]
      [:p "REST requests, JSON responses."]
-     [:h3 "Projects"]
+     [:h3 "Project Listing"]
      [:dl
       [:dt "Endpoint"]
       (let [endpoint (str api-url "projects")]
@@ -35,6 +35,20 @@
                          (catch Exception e "[Failed request]"))]
         [:dd.ex
          [:p "Request: "] [:pre.req [:code [:a {:href ex-url} ex-url]]]
+         [:p "Response: "] [:pre.resp [:code ex-resp]]])]
+     [:h3 "Project Detail"]
+     [:dl
+      [:dt "Endpoint"]
+      (let [endpoint (str api-url "projects/:group-id/:artifact-id")]
+        [:dd.endpoint [:pre [:code endpoint]]])
+      [:dt "Parameters"]
+      [:dd [:p.none "None"]]
+      [:dt "Example"]
+      (let [ex-url (str api-url "projects/useful/useful")
+            ex-resp (try (slurp ex-url)
+                         (catch Exception e "[Failed request]"))]
+        [:dd.ex
+         [:p "Request: "] [:pre.req [:code [:a {:href ex-url} ex-url]]]
          [:p "Response: "] [:pre.resp [:code ex-resp]]])]]]))
 
 (defn projects [& {:keys [query sort offset limit] :as opts}]
@@ -52,3 +66,13 @@
                     (assoc (dissoc props :versions)
                       :name pid)))}
      :pretty true)))
+
+(defn project-detail [pid]
+  (if-let [props (proj/graph pid)]
+    (json-resp
+     (assoc props
+       :name pid
+       :sorted-versions (proj/sort-versions (keys (:versions props)))
+       :latest-dependents (proj/get-dependents props))
+     :pretty true)
+    (json-resp nil)))

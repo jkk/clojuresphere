@@ -745,3 +745,7 @@ pre code a:link, pre code a:visited {
     font-size: 1.4em;
     margin: 1.5em 0;
 }
+dl .none {
+    margin: 0;
+    padding: 0;
+}

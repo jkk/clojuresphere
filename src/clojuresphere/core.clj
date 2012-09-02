@@ -27,13 +27,19 @@
                      :sort sort
                      :offset (parse-int offset 0)
                      :limit (parse-int limit)))
+  (GET ["/api/projects/:aid" :pid #"[^/]+"]
+       [aid]
+       (redirect (str "/api/projects/" aid "/" aid)))
+  (GET ["/api/projects/:gid/:aid" :gid #"[^/]+" :aid #"[^/]+"]
+       [gid aid]
+       (api/project-detail (symbol gid aid)))
   
   (GET ["/:aid" :pid #"[^/]+"]
        [aid]
-       (redirect (str aid "/" aid)))
+       (redirect (str "/" aid "/" aid)))
   (GET ["/:gid/:aid" :gid #"[^/]+" :aid #"[^/]+"]
        [gid aid]
-       (layout/project-detail (symbol (str gid "/" aid))))
+       (layout/project-detail (symbol gid aid)))
   (GET ["/:gid/:aid/:ver" :gid #"[^/]+" :aid #"[^/]+" :ver #"[^/]+"]
        [gid aid ver]
        (layout/project-version-detail gid aid ver))
