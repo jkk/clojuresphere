@@ -30,6 +30,7 @@
 (defn parse-pom-xml [xml]
   (let [z (zip/xml-zip xml)
         group-id (xml1-> z :groupId text)
+        group-id (or group-id (xml1-> z :parent :groupId text)) ;hack
         artifact-id (xml1-> z :artifactId text)
         name (if group-id (str group-id "/" artifact-id) artifact-id)
         version (xml1-> z :version text)
