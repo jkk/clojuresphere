@@ -71,11 +71,11 @@
      [:p.latest-versions
       (when (:stable props)
         [:span.ver.stable
-         [:span.label "Stable version"] " "
+         [:span.label "Stable"] " "
          [:span.version (str "[" pid " \"" (:stable props) "\"]")]])
       " "
       [:span.ver.latest
-       [:span.label "Latest version"] " "
+       [:span.label "Latest"] " "
        [:span.version (str "[" pid " \"" (:latest props) "\"]")]]]
      [:div.tidbits
       (when-let [homepage (or (-> props :clojars :homepage not-empty)

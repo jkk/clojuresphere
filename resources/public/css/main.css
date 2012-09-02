@@ -550,15 +550,16 @@ ul.project-list li .stat .value {
     display: block;
     width: 40%;
     margin: 0 0 1em 0;
-    padding: 0 1em 0 0;
+    padding: 0 1em 0 1em;
     float: left;
 }
 .project-detail .latest-versions .ver .label {
-    color: #bbb;
+    color: #aaa;
     display: block;
+    margin: 0 0 0.25em 0;
 }
 .project-detail .latest-versions .ver .version {
-
+    font-family: monospace;
 }
 .project-detail .tidbits {
     clear: left;
