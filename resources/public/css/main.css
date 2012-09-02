@@ -296,13 +296,14 @@ table { border-collapse: collapse; border-spacing: 0; }
     position: absolute;
     top: 50px;
     right: 1em;
+    font-size: 1.1em;
 }
 #header .inner form input[type=submit] {
     background: #777;
     color: #fff;
     border: none;
     border-radius: 5px;
-    padding: 4px 10px;
+    padding: 6px 10px;
 }
 #header .inner form input[type=submit]:hover {
     background: #888;
@@ -310,7 +311,11 @@ table { border-collapse: collapse; border-spacing: 0; }
 #query {
     border: none;
     border-radius: 10px;
-    padding: 4px 10px;
+    width: 210px;
+    padding: 6px 10px;
+}
+#query:focus {
+    outline: none;
 }
 #header h1 {
     margin: 0;

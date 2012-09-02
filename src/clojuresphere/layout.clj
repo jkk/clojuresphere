@@ -18,7 +18,7 @@
     (form-to [:get "/"]
              [:input {:name "query" :size 30 :id "query"
                       :value (get-in *req* [:query-params "query"])
-                      :type "search" :placeholder "Search"}] " "
+                      :type "text" :placeholder "Search"}] " "
                       (submit-button "Go"))
     [:div#links
      [:span#github-link (link-to "http://github.com/jkk/clojuresphere" "GitHub")] " "
