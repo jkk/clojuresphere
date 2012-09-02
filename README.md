@@ -13,16 +13,19 @@ Browsable dependency graph of Clojure projects. See it live here: http://www.clo
 
 ## TODO
 
+- API
+- move to a real database - Neo4J, other?
+- figure out a feasible way to include github forks
+- acquire more info from clojars (users, date stamps, etc.)
 - automate data fetching & preprocessing
   - incremental github updates based on push date
-- figure out a feasible way to include github forks
 - proper project.clj and pom.xml parsing
   - including version ranges (issue #1)
   - http://maven.apache.org/pom.html
   - special case for pom.contrib?
 - look for project.clj in sub-dirs (e.g., ring)
 - track authors
-- move to a real database - Neo4J, other?
+- autocomplete search box
 - separate/distinguish dev dependencies
   - different color or icon?
   - toggle to filter out entirely?
