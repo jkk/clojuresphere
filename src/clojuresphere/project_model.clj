@@ -94,11 +94,11 @@
            (comp - compare)
            versions))
 
-(defn latest-stable-coord? [[name ver] g]
-  (= ver (:stable (get g name))))
+(defn latest-stable-coord? [[pid ver] g]
+  (= ver (:stable (get g pid))))
 
-(defn latest-coord? [[name ver] g]
-  (= ver (:latest (get g name))))
+(defn latest-coord? [[pid ver] g]
+  (= ver (:latest (get g pid))))
 
 (defn all-dependents [props g & [pred]]
   (let [dep-coords (for [[_ {:keys [dependents]}] (:versions props)
@@ -110,7 +110,7 @@
 (defn count-dependents [props g & [pred]]
   (count (all-dependents props g pred)))
 
-(defn get-dependents [node]
+(defn get-dependents [props]
   (sort-by #(get-in graph [(first %) :dependent-counts :all])
            >
-           (all-dependents node graph latest-coord?)))
+           (all-dependents props graph latest-coord?)))

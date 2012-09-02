@@ -51,49 +51,49 @@
                     "/js/history.js"
                     "/js/main.js")]))))
 
-(defn get-github-url [node]
-  (when-let [gh (:github node)]
+(defn get-github-url [props]
+  (when-let [gh (:github props)]
     (let [owner (if (map? (:owner gh))
                   (-> gh :owner :login)
                   (:owner gh))]
       (str "https://github.com/" owner "/" (:name gh)))))
 
-(defn project-overview [gid aid node]
-  (let [github-url (get-github-url node)
+(defn project-overview [gid aid props]
+  (let [github-url (get-github-url props)
         pid (if (or (empty? gid) (= gid aid))
               aid (str gid "/" aid))
-        desc (or (:description node)
-                 (-> node :clojars :description)
-                 (-> node :github :description))]
+        desc (or (:description props)
+                 (-> props :clojars :description)
+                 (-> props :github :description))]
     [:div.overview
      (when-not (empty? desc)
        [:p.description desc])
      [:p.latest-versions
-      (when (:stable node)
+      (when (:stable props)
         [:span.ver.stable
          [:span.label "Stable version"] " "
-         [:span.version (str "[" pid " \"" (:stable node) "\"]")]])
+         [:span.version (str "[" pid " \"" (:stable props) "\"]")]])
       " "
       [:span.ver.latest
        [:span.label "Latest version"] " "
-       [:span.version (str "[" pid " \"" (:latest node) "\"]")]]]
+       [:span.version (str "[" pid " \"" (:latest props) "\"]")]]]
      [:div.tidbits
-      (when-let [homepage (or (-> node :clojars :homepage not-empty)
-                              (-> node :github :homepage not-empty))]
+      (when-let [homepage (or (-> props :clojars :homepage not-empty)
+                              (-> props :github :homepage not-empty))]
         (when (not= homepage github-url)
           [:p.homepage (link-to homepage "Homepage")]))
       (when github-url
         [:p.github (link-to github-url "GitHub")])
-      (when-let [clojars-url (-> node :clojars :url)]
+      (when-let [clojars-url (-> props :clojars :url)]
         [:p.clojars (link-to clojars-url "Clojars")])
-      (when (:watchers node)
-        [:p.watchers [:span.label "Watchers"] " " [:span.value (:watchers node)]])
-      (when (-> node :github :forks)
-        [:p.forks [:span.label "Forks"] " " [:span.value (-> node :github :forks)]])
-      (when (and (:updated node) (not (zero? (:updated node))))
+      (when (:watchers props)
+        [:p.watchers [:span.label "Watchers"] " " [:span.value (:watchers props)]])
+      (when (-> props :github :forks)
+        [:p.forks [:span.label "Forks"] " " [:span.value (-> props :github :forks)]])
+      (when (and (:updated props) (not (zero? (:updated props))))
         [:p.updated
          [:span.label "Updated"] " "
-         [:span.value (date->days-ago (:updated node)) " days ago"]])
+         [:span.value (date->days-ago (:updated props)) " days ago"]])
       [:div.clear]]]))
 
 (defn project-dep-list [deps]
@@ -105,7 +105,7 @@
                      [:span.name (name dname)] " " [:span.ver dver])])
      [:span.clear]]))
 
-(defn project-version-list [pid node versions]
+(defn project-version-list [pid props versions]
   (if (zero? (count versions))
     [:p.none "None"]
     [:ul.version-list
@@ -115,40 +115,40 @@
          (str "/" pid "/" (url-encode ver))
          [:span.version
           [:span.vver ver]]
-         [:span.count (count (get-in node [:versions ver :dependents]))])])
+         [:span.count (count (get-in props [:versions ver :dependents]))])])
      [:span.clear]]))
 
 (defn project-detail [pid]
-  (let [node (proj/graph pid)]
-    (when node
+  (let [props (proj/graph pid)]
+    (when props
       (let [gid (namespace pid)
             aid (name pid)
-            latest (:latest node)
-            deps (get-in node [:versions latest :dependencies])]
+            latest (:latest props)
+            deps (get-in props [:versions latest :dependencies])]
         (page
          aid
          [:div.project-detail
-          (project-overview gid aid node)
+          (project-overview gid aid props)
           [:div.dependencies
            [:h3 "Latest Dependencies "
             [:span.count (count deps)]]
            (project-dep-list deps)]
-          (let [versions (proj/sort-versions (keys (:versions node)))]
+          (let [versions (proj/sort-versions (keys (:versions props)))]
             [:div.versions
              [:h3 "Versions " [:span.count (count versions)]]
-             (project-version-list pid node versions)])
+             (project-version-list pid props versions)])
           [:div.dependents
            [:h3 "Dependents (latest versions only)"
-            [:span.count (-> node :dependent-counts :latest)]]
+            [:span.count (-> props :dependent-counts :latest)]]
            (if (= 'org.clojure/clojure pid)
              [:p.none "Everything!"]
-             (project-dep-list (proj/get-dependents node)))]])))))
+             (project-dep-list (proj/get-dependents props)))]])))))
 
 (defn project-version-detail [gid aid ver]
   (let [coord (proj/lein-coord gid aid ver)
         pid (symbol gid aid)
-        node (get-in proj/graph [pid :versions ver])]
-    (when node
+        props (get-in proj/graph [pid :versions ver])]
+    (when props
       (page
        (str gid "/" aid " " ver)
        [:div.project-detail.version-detail
@@ -159,28 +159,30 @@
                :id "project-link"}
            pid]]]
         [:div.dependencies
-         [:h3 "Dependencies for this version " [:span.count (count (:dependencies node))]]
-         (project-dep-list (:dependencies node))]
+         [:h3 "Dependencies for this version "
+          [:span.count (count (:dependencies props))]]
+         (project-dep-list (:dependencies props))]
         [:div.dependents
-         [:h3 "Dependents on this version " [:span.count (count (:dependents node))]]
-         (project-dep-list (sort (:dependents node)))]]))))
+         [:h3 "Dependents on this version "
+          [:span.count (count (:dependents props))]]
+         (project-dep-list (sort (:dependents props)))]]))))
 
 (defn project-list [pids]
   [:ul.project-list
    (for [pid pids
-         :let [node (or (proj/graph pid) {})]]
+         :let [props (or (proj/graph pid) {})]]
      [:li
       (link-to
        (str pid)
        [:span.name (h (name pid))]
        [:span.stat.dep-count
-        [:span.label "Used by"] " " [:span.value (-> node :dependent-counts :all)]]
-       (when (:watchers node)
+        [:span.label "Used by"] " " [:span.value (-> props :dependent-counts :all)]]
+       (when (:watchers props)
          [:span.stat.watchers
-          [:span.label "Watchers"] " "[:span.value (:watchers node)]])
-       (when (and (:updated node) (not (zero? (:updated node))))
+          [:span.label "Watchers"] " "[:span.value (:watchers props)]])
+       (when (and (:updated props) (not (zero? (:updated props))))
          [:span.stat.updated
-          [:span.label "Updated"] " " [:span.value (date->days-ago (:updated node))
+          [:span.label "Updated"] " " [:span.value (date->days-ago (:updated props))
                                        [:span.days-ago-label " days ago"]]]))])
    [:span.clear]])
 
