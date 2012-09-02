@@ -1,34 +1,36 @@
 (ns clojuresphere.project-model
-  (:use [clojuresphere.util :only [read-resource]]
+  (:use [clojuresphere.util :only [read-resource all-dependents
+                                   latest-coord?]]
         [clojure.java.io :as io]))
 
 ;; we don't need no stinkin database
 
 (def graph-data-file "project_graph.clj")
 (defonce graph (read-resource graph-data-file))
-(def project-count (count (filter #(or (:github-url %) (:clojars-url %)) (vals graph))))
-(def github-count (count (filter :github-url (vals graph))))
-(def clojars-count (count (filter :clojars-url (vals graph))))
+(def project-count (count (filter #(or (:github %) (:clojars %)) (vals graph))))
+(def github-count (count (filter :github (vals graph))))
+(def clojars-count (count (filter :clojars (vals graph))))
 (def last-updated (-> graph-data-file
                       io/resource io/file .lastModified (java.util.Date.)))
 
 (def sorted-pids
-  {:dependents (->> graph (sort-by (comp count :dependents val) >) keys vec)
+  {:dependents (->> graph (sort-by (comp :all :dependent-counts val) >) keys vec)
    :watchers (->> graph (sort-by (comp #(:watchers % 0) val) >) keys vec)
-   :forks (->> graph (sort-by (comp #(:forks % 0) val) >) keys vec)
-   :updated (->> graph (sort-by (comp #(:updated % 0) val) >) keys vec)})
+   :forks (->> graph (sort-by (comp #(:forks (:github %) 0) val) >) keys vec)
+   :updated (->> graph (sort-by (comp #(:updated % 0) val)
+                                (comp - compare))
+                 keys vec)})
 
 ;;
 
-(defn year-quarter [stamp]
-  (let [date (java.util.Date. (* stamp 1000))]
+(defn year-quarter [date-str]
+  (let [date (clojure.instant/read-instant-date date-str)]
     [(+ 1900 (.getYear date))
      (quot (.getMonth date) 3)]))
 
 (def creates-per-quarter
   (->> (vals graph)
-       (map :created)
-       (remove zero?)
+       (keep (comp :created :github))
        (group-by year-quarter)
        (into (sorted-map))))
 
@@ -44,21 +46,24 @@
 
 (defn find-pids [query]
   (let [query-re (re-pattern (str "(?i)" (or query "")))]
-    (for [[pid pinfo] graph
+    (for [[pid props] graph
           :when (some #(when % (re-find query-re %))
-                      [(name pid) (pinfo :description)])]
+                      [(name pid)
+                       (-> props :github :description)
+                       (-> props :clojars :description)])]
       pid)))
 
 (defn sort-pids [pids field]
   (let [field (keyword (name field))
-        key-fn (if (= :dependents field)
-                 (comp count :dependents)
-                 #(field % 0))]
-    (sort-by (comp key-fn graph) > pids)))
+        key-fn (condp = field
+                 :watchers :watchers
+                 :updated :updated
+                 :created :created
+                 (comp :all :dependent-counts))]
+    (sort-by (comp #(or % 0) key-fn graph) > pids)))
 
-;;
 
-(defn most-used-versions [pid]
-  (let [versions (get-in graph [pid :versions])]
-    (sort-by (comp count :dependents val) > versions)))
-
+(defn get-dependents [node]
+  (sort-by #(get-in graph [(first %) :dependent-counts :all])
+           >
+           (all-dependents node graph latest-coord?)))

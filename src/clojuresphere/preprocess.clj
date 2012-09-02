@@ -5,7 +5,7 @@
         [clojure.data.zip.xml :only [xml-> xml1-> text]]
         [clojuresphere.util :only [qualify-name lein-coord safe-read-string
                                    sort-versions latest-stable-coord?
-                                   latest-coord?]])
+                                   latest-coord? count-dependents]])
   (:require [clojure.xml :as xml]
             [clojure.zip :as zip]
             [clojure.java.io :as io]))
@@ -189,13 +189,6 @@
 (defn project-coord [project]
   (apply lein-coord (map project [:group-id :artifact-id :version])))
 
-(defn count-dependents [props g & [pred]]
-  (let [dep-coords (for [[_ {:keys [dependents]}] (:versions props)
-                         dep-coord dependents
-                         :when (or (nil? pred) (pred dep-coord g))]
-                     dep-coord)]
-    (reduce + (map count (distinct dep-coords)))))
-
 (defn build-deps [projects]
   (reduce
    (fn [g [[name ver :as coord] [dname dver :as dep-coord]]]
@@ -237,7 +230,13 @@
              new-props (if-let [github (:github github-p)]
                          (assoc new-props
                            :github github
-                           :watchers (:watchers github))
+                           :watchers (:watchers github)
+                           :updated (/ (.getTime (clojure.instant/read-instant-date
+                                                  (:pushed github)))
+                                       1000)
+                           :created (/ (.getTime (clojure.instant/read-instant-date
+                                                  (:created github)))
+                                       1000))
                          new-props)]
          (assoc g
            name (merge props new-props))))

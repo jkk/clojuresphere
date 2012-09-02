@@ -55,6 +55,15 @@
 (defn latest-coord? [[name ver] g]
   (= ver (:latest (get g name))))
 
+(defn all-dependents [props g & [pred]]
+  (let [dep-coords (for [[_ {:keys [dependents]}] (:versions props)
+                         dep-coord dependents
+                         :when (or (nil? pred) (pred dep-coord g))]
+                     dep-coord)]
+    (distinct dep-coords)))
+
+(defn count-dependents [props g & [pred]]
+  (count (all-dependents props g pred)))
 
 ;;
 

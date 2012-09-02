@@ -2,7 +2,7 @@
   (:use [clojuresphere.util :only [memory-stats parse-int wrap-request
                                    wrap-ajax-detect]]
         [compojure.core :only [defroutes GET POST ANY]]
-        [ring.util.response :only [response]]
+        [ring.util.response :only [response redirect]]
         [ring.middleware.params :only [wrap-params]]
         [ring.adapter.jetty :only [run-jetty]])
   (:require [clojuresphere.layout :as layout]
@@ -17,13 +17,20 @@
 
   (GET "/" {{query "query" sort "sort" offset "offset"} :params}
        (layout/projects query sort (parse-int offset 0)))
+
+  (route/resources "/")
   
-  (GET ["/:pid" :pid #"[^/]+"] [pid] (layout/project-detail pid))
-  (GET ["/:aid/:gid/:ver" :aid #"[^/]+" :gid #"[^/]+" :ver #"[^/]+"]
+  (GET ["/:aid" :pid #"[^/]+"]
+       [aid]
+       (redirect (str aid "/" aid)))
+  (GET ["/:gid/:aid" :gid #"[^/]+" :aid #"[^/]+"]
+       [gid aid]
+       (layout/project-detail (symbol (str gid "/" aid))))
+  (GET ["/:gid/:aid/:ver" :gid #"[^/]+" :aid #"[^/]+" :ver #"[^/]+"]
        [gid aid ver]
        (layout/project-version-detail gid aid ver))
 
-  (route/resources "/")
+  
   (route/not-found (layout/not-found)))
 
 (def app (-> #'routes

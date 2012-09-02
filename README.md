@@ -13,6 +13,10 @@ Browsable dependency graph of Clojure projects. See it live here: http://www.clo
 
 ## TODO
 
+- caching
+- make naming consistent: pid/name/aid etc
+- move project util fns to project-model
+- track authors
 - change "watchers" to "stars"?
 - move to a real database? Neo4J, other?
 - clojure version for best/latest project version
