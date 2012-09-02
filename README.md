@@ -37,6 +37,7 @@ Browsable dependency graph of Clojure projects. See it live here: http://www.clo
 - see about getting timely sql dumps from clojars
   - created/updated timestamps
 - marker/filter for java projects?
+- make use of github "size" attribute
 - user-defined tags
 - put handler fns between routes & layout fns?
 - reinstate pervasive ajax
