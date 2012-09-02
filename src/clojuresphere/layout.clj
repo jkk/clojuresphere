@@ -1,14 +1,12 @@
 (ns clojuresphere.layout
-  (:use [clojuresphere.util :only [url-encode qualify-name maven-coord lein-coord
-                                   parse-int date->days-ago *req* sort-versions
-                                   latest-coord? all-dependents]]
+  (:use [clojuresphere.util :only [url-encode parse-int date->days-ago *req*]]
         [clojure.string :only [capitalize join split]]
         [hiccup.page :only [html5 include-js include-css]]
         [hiccup.element :only [link-to javascript-tag link-to]]
         [hiccup.form :only [form-to submit-button]]
         [hiccup.util :only [url]]
         [hiccup.core :only [h html]])
-  (:require [clojuresphere.project-model :as project]))
+  (:require [clojuresphere.project-model :as proj]))
 
 (def site-name "ClojureSphere")
 
@@ -121,7 +119,7 @@
      [:span.clear]]))
 
 (defn project-detail [pid]
-  (let [node (project/graph pid)]
+  (let [node (proj/graph pid)]
     (when node
       (let [gid (namespace pid)
             aid (name pid)
@@ -135,7 +133,7 @@
            [:h3 "Latest Dependencies "
             [:span.count (count deps)]]
            (project-dep-list deps)]
-          (let [versions (sort-versions (keys (:versions node)))]
+          (let [versions (proj/sort-versions (keys (:versions node)))]
             [:div.versions
              [:h3 "Versions " [:span.count (count versions)]]
              (project-version-list pid node versions)])
@@ -144,12 +142,12 @@
             [:span.count (-> node :dependent-counts :latest)]]
            (if (= 'org.clojure/clojure pid)
              [:p.none "Everything!"]
-             (project-dep-list (project/get-dependents node)))]])))))
+             (project-dep-list (proj/get-dependents node)))]])))))
 
 (defn project-version-detail [gid aid ver]
-  (let [coord (lein-coord gid aid ver)
+  (let [coord (proj/lein-coord gid aid ver)
         pid (symbol gid aid)
-        node (get-in project/graph [pid :versions ver])]
+        node (get-in proj/graph [pid :versions ver])]
     (when node
       (page
        (str gid "/" aid " " ver)
@@ -170,7 +168,7 @@
 (defn project-list [pids]
   [:ul.project-list
    (for [pid pids
-         :let [node (or (project/graph pid) {})]]
+         :let [node (or (proj/graph pid) {})]]
      [:li
       (link-to
        (str pid)
@@ -220,7 +218,7 @@
        (count window)))))
 
 (defn projects-per-quarter-chart []
-  (let [yrange (range project/first-year (inc project/last-year))]
+  (let [yrange (range proj/first-year (inc proj/last-year))]
     [:img#projects-per-quarter
      {:src (url "https://chart.googleapis.com/chart"
                 {:cht "lc"
@@ -229,8 +227,8 @@
                  :chxl (str "0:|" (join "|" yrange) "|")
                  :chxp (str "0," (join "," (map (partial * 4)
                                                 (range (count yrange)))))
-                 :chxr (str "0,0," (count project/quarterly-counts))
-                 :chd (str "t:" (join "," project/quarterly-counts))
+                 :chxr (str "0,0," (count proj/quarterly-counts))
+                 :chd (str "t:" (join "," proj/quarterly-counts))
                  :chco "449966"
                  :chm "B,eeffeebb,0,0,0"
                  :chds "a"})}]))
@@ -240,15 +238,15 @@
    [:h3 "Stats"]
    [:dl
     [:dt "Projects"]
-    [:dd project/project-count]
+    [:dd proj/project-count]
     [:dt "GitHub projects"]
-    [:dd project/github-count]
+    [:dd proj/github-count]
     [:dt "Clojars projects"]
-    [:dd project/clojars-count]
+    [:dd proj/clojars-count]
     [:dt "Projects per quarter (GitHub only)"]
     [:dd (projects-per-quarter-chart)]
     [:dt "Last indexed"]
-    [:dd#last-indexed (str project/last-updated)]]])
+    [:dd#last-indexed (str proj/last-updated)]]])
 
 (defn projects [query sort offset]
   (page
@@ -256,10 +254,10 @@
    (let [sort (or sort "dependents")
          random? (= "random" sort)
          pids (cond
-               (seq query) (project/sort-pids (project/find-pids query) sort)
-               random?     (repeatedly per-page project/random)
-               :else       (or (project/sorted-pids (keyword sort))
-                               (project/sorted-pids :dependents)))
+               (seq query) (proj/sort-pids (proj/find-pids query) sort)
+               random?     (repeatedly per-page proj/random)
+               :else       (or (proj/sorted-pids (keyword sort))
+                               (proj/sorted-pids :dependents)))
          title (if (seq query)
                  (str "Search: " (h query))
                  "Projects")]

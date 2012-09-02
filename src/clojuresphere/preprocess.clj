@@ -3,9 +3,9 @@
         [tentacles.search :only [search-repos]]
         [clojure.pprint :only [pprint]]
         [clojure.data.zip.xml :only [xml-> xml1-> text]]
-        [clojuresphere.util :only [qualify-name lein-coord safe-read-string
-                                   sort-versions latest-stable-coord?
-                                   latest-coord? count-dependents]])
+        [clojuresphere.util :only [qualify-name lein-coord safe-read-string]]
+        [clojuresphere.project-model :only [sort-versions latest-stable-coord?
+                                            latest-coord? count-dependents]])
   (:require [clojure.xml :as xml]
             [clojure.zip :as zip]
             [clojure.java.io :as io]))

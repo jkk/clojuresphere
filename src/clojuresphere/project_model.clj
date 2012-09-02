@@ -1,7 +1,7 @@
 (ns clojuresphere.project-model
-  (:use [clojuresphere.util :only [read-resource all-dependents
-                                   latest-coord?]]
-        [clojure.java.io :as io]))
+  (:use [clojuresphere.util :only [read-resource]]
+        [clojure.java.io :as io])
+  (:import [org.apache.maven.artifact.versioning DefaultArtifactVersion]))
 
 ;; we don't need no stinkin database
 
@@ -62,6 +62,53 @@
                  (comp :all :dependent-counts))]
     (sort-by (comp #(or % 0) key-fn graph) > pids)))
 
+;;
+
+(defn qualify-name [name]
+  (let [name (str name)
+        name-parts (.split name "/")]
+    (if (= 2 (count name-parts))
+      name-parts
+      [name name])))
+
+(defn maven-coord [[name version]]
+  "Turn a Leiningen-format [name version] coordinate into Maven
+  [group artifact version] format (with strings for each element)"
+  (let [[gid aid] (qualify-name name)]
+    [gid aid (str version)]))
+
+(defn lein-coord
+  "Return a coordinate in a qualified [group/artifact version] format, as
+  used by Leingingen, where the first element is a symbol, and the second a
+  string"
+  ([name version]
+     (let [[gid aid] (qualify-name name)]
+       (lein-coord gid aid version)))
+  ([group-id artifact-id version]
+     (let [group-id (if (and group-id (seq group-id))
+                      group-id artifact-id)]
+       [(symbol (str group-id "/" artifact-id)) (str version)])))
+
+(defn sort-versions [versions]
+  (sort-by #(DefaultArtifactVersion. %)
+           (comp - compare)
+           versions))
+
+(defn latest-stable-coord? [[name ver] g]
+  (= ver (:stable (get g name))))
+
+(defn latest-coord? [[name ver] g]
+  (= ver (:latest (get g name))))
+
+(defn all-dependents [props g & [pred]]
+  (let [dep-coords (for [[_ {:keys [dependents]}] (:versions props)
+                         dep-coord dependents
+                         :when (or (nil? pred) (pred dep-coord g))]
+                     dep-coord)]
+    (distinct dep-coords)))
+
+(defn count-dependents [props g & [pred]]
+  (count (all-dependents props g pred)))
 
 (defn get-dependents [node]
   (sort-by #(get-in graph [(first %) :dependent-counts :all])
