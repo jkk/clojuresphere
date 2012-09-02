@@ -122,6 +122,7 @@
                 :open-issues (:open_issues repo)}))))
 
 (defn fetch-github-projects []
+  (println "Fetching GitHub repos and projects...")
   (let [;; special exception for clojure itself (written in java)
         clojure-repo (first (search-repos "clojure"))
         repos (cons clojure-repo (fetch-all-repos))]
@@ -131,6 +132,7 @@
 ;; clojars
 
 (defn read-all-pom-projects [clojars-dir]
+  (println "Parsing Clojars POM files...")
   (with-open [r (io/reader (str clojars-dir "all-poms.txt"))]
     (doall
      (remove nil?
@@ -148,6 +150,7 @@
 ;; homepage url, e.g. for swank-clojure, which is a fork and doesn't
 ;; show up in the repo search
 (defn fetch-extra-github-projects [clojars-projects github-projects]
+  (println "Fetching GitHub projects discovered via Clojars...")
   (let [clojars-github-urls
         (->> clojars-projects
              (map (comp normalize-github-url :homepage :clojars))
@@ -262,6 +265,20 @@
   (-> (build-deps projects)
       (build-info projects)
       (build-counts)))
+
+;; See scripts/refresh.sh
+(defn -main [& args]
+  (let [clojars-dir (first args)
+        projects (fetch-all-projects clojars-dir)
+        g (build-project-graph projects)
+        out-path (str (System/getProperty "user.dir")
+                      "/resources/project_graph.clj")]
+    (println "Saving project graph...")
+    (with-open [w (io/writer out-path)]
+      (binding [*out* w]
+        (pprint g)))
+    (println "Done")))
+
 
 (comment
   
