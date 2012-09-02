@@ -101,9 +101,12 @@
   (if (zero? (count deps))
     [:p.none "None"]
     [:ul.dep-list
-     (for [[dname dver :as coord] deps]
-       [:li (link-to (str "/" dname)
-                     [:span.name (name dname)] " " [:span.ver dver])])
+     ;; straight hiccup is slow for large lists
+     (apply str (mapcat (fn [[dname dver]]
+                          ["<li>"
+                           "<a href='/" dname "'><span class='name'>" (name dname)
+                           "</span> <span class='ver'>" dver "</span></a></li>"])
+                        deps))
      [:span.clear]]))
 
 (defn project-version-list [pid props versions]
