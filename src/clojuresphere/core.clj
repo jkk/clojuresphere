@@ -33,6 +33,9 @@
   (GET ["/api/projects/:gid/:aid" :gid #"[^/]+" :aid #"[^/]+"]
        [gid aid]
        (api/project-detail (symbol gid aid)))
+  (GET ["/api/projects/:gid/:aid/:ver" :gid #"[^/]+" :aid #"[^/]+" :ver #"[^/]+"]
+       [gid aid ver]
+       (api/project-version-detail (symbol gid aid) ver))
   
   (GET ["/:aid" :pid #"[^/]+"]
        [aid]

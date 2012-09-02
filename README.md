@@ -13,7 +13,8 @@ Browsable dependency graph of Clojure projects. See it live here: http://www.clo
 
 ## TODO
 
-- API
+- ring-gzip-middleware https://github.com/amalloy/ring-gzip-middleware
+- clojure data API output
 - move to a real database - Neo4J, other?
 - figure out a feasible way to include github forks
 - acquire more info from clojars (users, date stamps, etc.)

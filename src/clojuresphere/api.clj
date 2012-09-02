@@ -49,6 +49,20 @@
                          (catch Exception e "[Failed request]"))]
         [:dd.ex
          [:p "Request: "] [:pre.req [:code [:a {:href ex-url} ex-url]]]
+         [:p "Response: "] [:pre.resp [:code ex-resp]]])]
+     [:h3 "Project Version Detail"]
+     [:dl
+      [:dt "Endpoint"]
+      (let [endpoint (str api-url "projects/:group-id/:artifact-id/:version")]
+        [:dd.endpoint [:pre [:code endpoint]]])
+      [:dt "Parameters"]
+      [:dd [:p.none "None"]]
+      [:dt "Example"]
+      (let [ex-url (str api-url "projects/useful/useful/0.8.4")
+            ex-resp (try (slurp ex-url)
+                         (catch Exception e "[Failed request]"))]
+        [:dd.ex
+         [:p "Request: "] [:pre.req [:code [:a {:href ex-url} ex-url]]]
          [:p "Response: "] [:pre.resp [:code ex-resp]]])]]]))
 
 (defn projects [& {:keys [query sort offset limit] :as opts}]
@@ -74,5 +88,14 @@
        :name pid
        :sorted-versions (proj/sort-versions (keys (:versions props)))
        :latest-dependents (proj/get-dependents props))
+     :pretty true)
+    (json-resp nil)))
+
+(defn project-version-detail [pid ver]
+  (if-let [props (get-in proj/graph [pid :versions ver])]
+    (json-resp
+     (assoc props
+       :name pid
+       :version ver)
      :pretty true)
     (json-resp nil)))
