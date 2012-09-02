@@ -1,6 +1,7 @@
 (ns clojuresphere.util
   (:use [clojure.walk :only [keywordize-keys]])
-  (:require [clojure.java.io :as io]))
+  (:require [clojure.java.io :as io]
+            [cheshire.core :as json]))
 
 (def ^:dynamic *req* nil)
 
@@ -14,6 +15,11 @@
     (handler (assoc req
                :ajax? (= "XMLHttpRequest"
                          (get-in req [:headers "x-requested-with"]))))))
+
+(defn json-resp [data & {:as opts}]
+  {:status 200
+   :headers {"Content-type" "application/json"}
+   :body (json/generate-string data opts)})
 
 ;;
 

@@ -311,7 +311,7 @@ table { border-collapse: collapse; border-spacing: 0; }
 #query {
     border: none;
     border-radius: 10px;
-    width: 210px;
+    width: 255px;
     padding: 6px 10px;
 }
 #query:focus {
@@ -387,6 +387,7 @@ table { border-collapse: collapse; border-spacing: 0; }
 #header #links a {
     color: #ccc;
 }
+#header #links #api-link,
 #header #links #github-link {
     margin: 0 10px 0 0;
     padding: 0 10px 0 0;
@@ -548,7 +549,7 @@ ul.project-list li .stat .value {
 }
 .project-detail .latest-versions .ver {
     display: block;
-    width: 40%;
+    width: 45%;
     margin: 0 0 1em 0;
     padding: 0 1em 0 1em;
     float: left;
@@ -685,4 +686,62 @@ a.button:hover {
 a.button.inactive:hover {
     background: #999;
     color: #ddd;
+}
+dl {
+    margin: 0;
+    padding: 0;
+}
+dl dt {
+    margin: 0 1% 1em 1%;
+    padding: 0;
+    width: 13%;
+    float: left;
+    font-weight: bold;
+    color: #666;
+}
+dl dd {
+    margin: 0 0 1em 0;
+    padding: 0;
+    width: 85%;
+    float: left;
+}
+dl dl dt, dl dl dd {
+    margin: 0;
+    border-bottom: 1px solid #ddd;
+    padding: 0.25em;
+    color: #222;
+}
+dl dd p {
+    margin: 0 0 1em 0;
+}
+code {
+    font-weight: bold;
+}
+pre {
+    margin: 0 0 1em 0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 0.5em;
+    max-height: 200px;
+    overflow: auto;
+}
+.endpoint pre {
+    margin: 0;
+}
+pre code {
+    color: #800;
+    font-weight: normal;
+}
+pre code a:link, pre code a:visited {
+    color: #800;
+}
+#api-overview h3 {
+    background: none;
+    padding: 0 0 0.25em 0;
+    border: none;
+    font-weight: bold;
+    border-bottom: 2px solid #ddd;
+    border-radius: 0;
+    font-size: 1.4em;
+    margin: 1.5em 0;
 }

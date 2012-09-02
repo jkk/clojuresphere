@@ -21,6 +21,7 @@
                       :type "text" :placeholder "Search"}] " "
                       (submit-button "Go"))
     [:div#links
+     [:span#api-link (link-to "/api" "API")] " "
      [:span#github-link (link-to "http://github.com/jkk/clojuresphere" "GitHub")] " "
      [:span#built-by "Built by "
       (link-to "http://jkkramer.com" "Justin Kramer") " - "

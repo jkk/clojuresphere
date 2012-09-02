@@ -1,11 +1,12 @@
 (ns clojuresphere.core
   (:use [clojuresphere.util :only [memory-stats parse-int wrap-request
-                                   wrap-ajax-detect]]
+                                   wrap-ajax-detect json-resp]]
         [compojure.core :only [defroutes GET POST ANY]]
         [ring.util.response :only [response redirect]]
         [ring.middleware.params :only [wrap-params]]
         [ring.adapter.jetty :only [run-jetty]])
   (:require [clojuresphere.layout :as layout]
+            [clojuresphere.api :as api]
             [clojuresphere.project-model :as project]
             [compojure.route :as route]))
 
@@ -15,10 +16,17 @@
        (prn-str (merge {:projects (count project/graph)
                         :memory (memory-stats :gc gc)})))
 
-  (GET "/" {{query "query" sort "sort" offset "offset"} :params}
+  (GET "/" {{:strs [query sort offset]} :params}
        (layout/projects query sort (parse-int offset 0)))
 
   (route/resources "/")
+
+  (GET "/api" [] (api/overview))
+  (GET "/api/projects" {{:strs [query sort offset limit]} :params}
+       (api/projects :query query
+                     :sort sort
+                     :offset (parse-int offset 0)
+                     :limit (parse-int limit)))
   
   (GET ["/:aid" :pid #"[^/]+"]
        [aid]
@@ -30,7 +38,6 @@
        [gid aid ver]
        (layout/project-version-detail gid aid ver))
 
-  
   (route/not-found (layout/not-found)))
 
 (def app (-> #'routes
