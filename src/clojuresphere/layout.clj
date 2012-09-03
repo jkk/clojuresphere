@@ -190,7 +190,7 @@
                                        [:span.days-ago-label " days ago"]]]))])
    [:span.clear]])
 
-(def per-page 30)
+(def per-page 90)
 
 (defn neg-guard [x]
   (if (neg? x) 0 x))

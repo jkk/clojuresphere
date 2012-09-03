@@ -26,7 +26,7 @@
              [:code "updated"] ", " [:code "created"] ", " [:code "random"]
              ". Default: " [:code "dependents"]]
             [:dt [:code "limit"]]
-            [:dd "Number of projects to return. Default: " [:code "30"]]
+            [:dd "Number of projects to return. Default: " [:code "50"]]
             [:dt [:code "offset"]]
             [:dd "Offset within total results to return. Default: " [:code "0"]]]]
       [:dt "Example"]
@@ -89,7 +89,7 @@
 (defn projects [& {:keys [query sort offset limit output] :as opts}]
   (let [sort (or sort "dependents")
         random? (= "random" sort)
-        limit (or limit 30)
+        limit (or limit 50)
         pids (cond
               (seq query) (proj/sort-pids (proj/find-pids query) sort)
               random?     (repeatedly limit proj/random)
