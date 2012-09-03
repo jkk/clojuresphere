@@ -1,5 +1,5 @@
 (ns clojuresphere.api
-  (:use [clojuresphere.layout :only [page render-map]]
+  (:use [clojuresphere.layout :only [page]]
         [clojuresphere.util :only [json-resp]])
   (:require [clojuresphere.project-model :as proj]))
 
