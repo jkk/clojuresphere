@@ -111,6 +111,7 @@
   (count (all-dependents props g pred)))
 
 (defn get-dependents [props & [pred]]
-  (sort-by #(get-in graph [(first %) :dependent-counts :all])
+  (sort-by #(+ (get-in graph [(first %) :dependent-counts :all])
+               (get-in graph [(first %) :watchers] 0))
            >
            (all-dependents props graph (or pred latest-coord?))))
