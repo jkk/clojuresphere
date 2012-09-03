@@ -1,6 +1,6 @@
 (ns clojuresphere.api
   (:use [clojuresphere.layout :only [page]]
-        [clojuresphere.util :only [json-resp]])
+        [clojuresphere.util :only [json-resp clojure-resp]])
   (:require [clojuresphere.project-model :as proj]))
 
 (def api-url "http://www.clojuresphere.com/api/")
@@ -11,7 +11,7 @@
    [:div.project-detail
     [:div#api-overview.overview.clearfix
      [:h3 "API Format"]
-     [:p "REST requests, JSON responses."]
+     [:p "REST requests, JSON responses by default. Set the " [:code "output"] " query parameter to " [:code "clojure"] " to return responses as Clojure data."]
      [:h3 "Project Listing"]
      [:dl
       [:dt "Endpoint"]
@@ -69,7 +69,7 @@
   (let [github (select-keys (:github props)
                             [:name :owner :watchers :forks :description
                              :homepage])
-        github (when github
+        github (when (seq github)
                  (let [owner (:owner github)]
                    (assoc github
                      :owner (if (map? owner)
@@ -86,7 +86,7 @@
                 props)]
     props))
 
-(defn projects [& {:keys [query sort offset limit] :as opts}]
+(defn projects [& {:keys [query sort offset limit output] :as opts}]
   (let [sort (or sort "dependents")
         random? (= "random" sort)
         limit (or limit 30)
@@ -94,23 +94,32 @@
               (seq query) (proj/sort-pids (proj/find-pids query) sort)
               random?     (repeatedly limit proj/random)
               :else       (or (proj/sorted-pids (keyword sort))
-                              (proj/sorted-pids :dependents)))]
-    (json-resp
+                              (proj/sorted-pids :dependents)))
+        resp-fn (if (= "clojure" output)
+                  clojure-resp
+                  json-resp)]
+    (resp-fn
      {:projects (for [pid (take limit pids)]
                   (let [props (get proj/graph pid)]
                     (prep-project pid (dissoc props :versions))))}
      :pretty true)))
 
-(defn project-detail [pid]
-  (if-let [props (proj/graph pid)]
-    (json-resp (prep-project pid props) :pretty true)
-    (json-resp nil)))
+(defn project-detail [pid params]
+  (let [resp-fn (if (= "clojure" (get params "output"))
+                  clojure-resp
+                  json-resp)]
+    (resp-fn
+     (when-let [props (proj/graph pid)]
+       (prep-project pid props))
+     :pretty true)))
 
-(defn project-version-detail [pid ver]
-  (if-let [props (get-in proj/graph [pid :versions ver])]
-    (json-resp
-     (assoc props
-       :name pid
-       :version ver)
-     :pretty true)
-    (json-resp nil)))
+(defn project-version-detail [pid ver params]
+  (let [resp-fn (if (= "clojure" (get params "output"))
+                  clojure-resp
+                  json-resp)]
+    (resp-fn
+     (when-let [props (get-in proj/graph [pid :versions ver])]
+       (assoc props
+         :name pid
+         :version ver))
+     :pretty true)))

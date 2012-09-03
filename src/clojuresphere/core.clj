@@ -23,20 +23,21 @@
   (route/resources "/")
 
   (GET "/api" [] (api/overview))
-  (GET "/api/projects" {{:strs [query sort offset limit]} :params}
+  (GET "/api/projects" {{:strs [query sort offset limit output]} :params}
        (api/projects :query query
                      :sort sort
                      :offset (parse-int offset 0)
-                     :limit (parse-int limit)))
+                     :limit (parse-int limit)
+                     :output output))
   (GET ["/api/projects/:aid" :pid #"[^/]+"]
        [aid]
        (redirect (str "/api/projects/" aid "/" aid)))
   (GET ["/api/projects/:gid/:aid" :gid #"[^/]+" :aid #"[^/]+"]
-       [gid aid]
-       (api/project-detail (symbol gid aid)))
+       {{:keys [gid aid] :as params} :params}
+       (api/project-detail (symbol gid aid) params))
   (GET ["/api/projects/:gid/:aid/:ver" :gid #"[^/]+" :aid #"[^/]+" :ver #"[^/]+"]
-       [gid aid ver]
-       (api/project-version-detail (symbol gid aid) ver))
+       {{:keys [gid aid ver] :as params} :params}
+       (api/project-version-detail (symbol gid aid) ver params))
   
   (GET ["/:aid" :pid #"[^/]+"]
        [aid]

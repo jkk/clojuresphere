@@ -21,6 +21,11 @@
    :headers {"Content-type" "application/json"}
    :body (json/generate-string data opts)})
 
+(defn clojure-resp [data & {:as opts}]
+  {:status 200
+   :headers {"Content-type" "application/clojure"}
+   :body (prn-str data)})
+
 ;;
 
 (defn memory-stats [& {:keys [gc]}]
