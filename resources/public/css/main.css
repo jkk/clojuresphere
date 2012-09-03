@@ -687,11 +687,11 @@ a.button.inactive:hover {
     background: #999;
     color: #ddd;
 }
-dl {
+#api-overview dl {
     margin: 0;
     padding: 0;
 }
-dl dt {
+#api-overview dl dt {
     margin: 0 1% 1em 1%;
     padding: 0;
     width: 13%;
@@ -699,25 +699,25 @@ dl dt {
     font-weight: bold;
     color: #666;
 }
-dl dd {
+#api-overview dl dd {
     margin: 0 0 1em 0;
     padding: 0;
     width: 85%;
     float: left;
 }
-dl dl dt, dl dl dd {
+#api-overview dl dl dt, #api-overview dl dl dd {
     margin: 0;
     border-bottom: 1px solid #ddd;
     padding: 0.3em 0.1em;
     color: #222;
 }
-dl dd p {
+#api-overview dl dd p {
     margin: 0 0 1em 0;
 }
-code {
+#api-overview code {
     font-weight: bold;
 }
-pre {
+#api-overview pre {
     margin: 0 0 1em 0;
     border: 1px solid #ddd;
     border-top: 1px solid #ccc;
@@ -727,14 +727,14 @@ pre {
     overflow: auto;
     background: #fcfcfc;
 }
-.endpoint pre {
+#api-overview .endpoint pre {
     margin: 0;
 }
-pre code {
+#api-overview pre code {
     color: #800;
     font-weight: normal;
 }
-pre code a:link, pre code a:visited {
+#api-overview pre code a:link, #api-overview pre code a:visited {
     color: #800;
 }
 #api-overview h3 {
@@ -747,7 +747,7 @@ pre code a:link, pre code a:visited {
     font-size: 1.4em;
     margin: 1.5em 0;
 }
-dl .none {
+#api-overview dl .none {
     margin: 0;
     padding: 0;
 }
