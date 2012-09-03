@@ -708,7 +708,7 @@ dl dd {
 dl dl dt, dl dl dd {
     margin: 0;
     border-bottom: 1px solid #ddd;
-    padding: 0.25em;
+    padding: 0.3em 0.1em;
     color: #222;
 }
 dl dd p {
@@ -720,10 +720,12 @@ code {
 pre {
     margin: 0 0 1em 0;
     border: 1px solid #ddd;
+    border-top: 1px solid #ccc;
     border-radius: 4px;
     padding: 0.5em;
     max-height: 200px;
     overflow: auto;
+    background: #fcfcfc;
 }
 .endpoint pre {
     margin: 0;

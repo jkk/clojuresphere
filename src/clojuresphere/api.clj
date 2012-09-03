@@ -1,5 +1,5 @@
 (ns clojuresphere.api
-  (:use [clojuresphere.layout :only [page]]
+  (:use [clojuresphere.layout :only [page render-map]]
         [clojuresphere.util :only [json-resp]])
   (:require [clojuresphere.project-model :as proj]))
 
@@ -65,6 +65,27 @@
          [:p "Request: "] [:pre.req [:code [:a {:href ex-url} ex-url]]]
          [:p "Response: "] [:pre.resp [:code ex-resp]]])]]]))
 
+(defn prep-project [pid props]
+  (let [github (select-keys (:github props)
+                            [:name :owner :watchers :forks :description
+                             :homepage])
+        github (when github
+                 (let [owner (:owner github)]
+                   (assoc github
+                     :owner (if (map? owner)
+                              (:login owner)
+                              owner))))
+        props (assoc (dissoc props :watchers :dependent-counts)
+                :name pid
+                :github github)
+        props (if (contains? props :versions)
+                (assoc props
+                  :sorted-versions (proj/sort-versions (keys (:versions props)))
+                  :latest-dependents (proj/get-dependents props)
+                  :stable-dependents (proj/get-dependents props proj/latest-stable-coord?))
+                props)]
+    props))
+
 (defn projects [& {:keys [query sort offset limit] :as opts}]
   (let [sort (or sort "dependents")
         random? (= "random" sort)
@@ -77,18 +98,12 @@
     (json-resp
      {:projects (for [pid (take limit pids)]
                   (let [props (get proj/graph pid)]
-                    (assoc (dissoc props :versions)
-                      :name pid)))}
+                    (prep-project pid (dissoc props :versions))))}
      :pretty true)))
 
 (defn project-detail [pid]
   (if-let [props (proj/graph pid)]
-    (json-resp
-     (assoc props
-       :name pid
-       :sorted-versions (proj/sort-versions (keys (:versions props)))
-       :latest-dependents (proj/get-dependents props))
-     :pretty true)
+    (json-resp (prep-project pid props) :pretty true)
     (json-resp nil)))
 
 (defn project-version-detail [pid ver]
