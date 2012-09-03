@@ -4,6 +4,7 @@
         [compojure.core :only [defroutes GET POST ANY]]
         [ring.util.response :only [response redirect]]
         [ring.middleware.params :only [wrap-params]]
+        [ring.middleware.gzip :only [wrap-gzip]]
         [ring.adapter.jetty :only [run-jetty]])
   (:require [clojuresphere.layout :as layout]
             [clojuresphere.api :as api]
@@ -52,7 +53,8 @@
 (def app (-> #'routes
              wrap-request
              wrap-ajax-detect
-             wrap-params))
+             wrap-params
+             wrap-gzip))
 
 (defn -main []
   (let [port (Integer. (get (System/getenv) "PORT" "9999"))]
