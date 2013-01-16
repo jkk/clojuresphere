@@ -7,3 +7,6 @@ pom.xml
 /clojars/
 /dev/
 /target
+.lein-env
+.settings
+/resources/config.clj
