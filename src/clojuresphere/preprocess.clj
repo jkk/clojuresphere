@@ -9,7 +9,14 @@
                                             latest-coord? count-dependents]])
   (:require [clojure.xml :as xml]
             [clojure.zip :as zip]
-            [clojure.java.io :as io]))
+            [clojure.java.io :as io]
+            [sundry.io :as sio]
+            [aws.sdk.s3 :as s3]))
+
+(def config (sio/read (io/resource "config.clj")))
+
+(def aws-cred {:access-key (:aws-access-key config)
+               :secret-key (:aws-secret-key config)})
 
 ;; TODO: project.clj should actually be eval'd, not just read
 (defn parse-project-data [[defproj name version & opts]]
@@ -68,12 +75,20 @@
   (Thread/sleep 1000) ;crude rate limit
   (println "Fetching repo" owner repo)
   (flush)
-  (specific-repo owner repo))
+  (specific-repo owner repo {:client_id (:github-client-id config)
+                             :client_secret (:github-client-secret config)}))
 
 (defn fetch-repos [start-page]
   (Thread/sleep 1000) ;crude rate limit
   (println "Fetching page" start-page) ;FIXME: proper logging
-  (search-repos "clojure" {:language "clojure" :start-page start-page}))
+  (let [resp (search-repos
+               "clojure" {:language "clojure"
+                          :start-page start-page
+                          :client_id (:github-client-id config)
+                          :client_secret (:github-client-secret config)})]
+    (if-not (sequential? resp)
+      (throw (ex-info "Bad response" {:response resp}))
+      resp)))
 
 (defn fetch-all-repos []
   (->> (iterate inc 1)
@@ -127,8 +142,9 @@
   (let [;; special exception for clojure itself (written in java)
         clojure-repo (first (search-repos "clojure"))
         repos (cons clojure-repo (fetch-all-repos))]
-    (remove (comp #{"clojure-slick-rogue"} :name :github) ;broken
-            (fetch-all-repo-projects repos))))
+    (doall
+      (remove (comp #{"clojure-slick-rogue"} :name :github) ;broken
+              (fetch-all-repo-projects repos)))))
 
 ;; clojars
 
@@ -196,18 +212,24 @@
 
 (defn build-deps [projects]
   (reduce
-   (fn [g [[name ver :as coord] [dname dver :as dep-coord]]]
-     (-> g
-         (update-in [name :versions ver :dependencies] (fnil conj #{}) dep-coord)
-         (update-in [dname :versions dver :dependents] (fnil conj #{}) coord)))
-   {}
-   (for [p projects
-         [dname dver] (concat (:dependencies p)
-                              (:dev-dependencies p)
-                              (get-in p [:profiles :dev :dependencies]))]
-     (let [coord (project-coord p)
-           dep-coord (lein-coord dname dver)]
-       [coord dep-coord]))))
+    (fn [g [[name ver :as coord] [dname dver :as dep-coord]]]
+      (-> g
+        (update-in [name :versions ver :dependencies] (fnil conj #{}) dep-coord)
+        (update-in [dname :versions dver :dependents] (fnil conj #{}) coord)))
+    {}
+    (for [p projects
+          :let [deps (concat (:dependencies p)
+                             (:dev-dependencies p)
+                             (get-in p [:profiles :dev :dependencies]))]
+          dep deps
+          :when (and (vector? dep)
+                     (symbol? (first dep))
+                     (string? (second dep))
+                     (pos? (count (second dep))))]
+      (let [[dname dver] dep
+            coord (project-coord p)
+            dep-coord (lein-coord dname dver)]
+        [coord dep-coord]))))
 
 ;; For clojars info, we look at the latest stable version, but for
 ;; github, we look for the most-watched (possibly unstable) version
@@ -267,17 +289,25 @@
       (build-info projects)
       (build-counts)))
 
+(defn upload-project-graph [aws-cred g]
+  (let [tmp (java.io.File/createTempFile "project_graph" ".clj.gz")]
+    (with-open [w (io/writer
+                    (java.util.zip.GZIPOutputStream.
+                      (io/output-stream tmp)))]
+      (binding [*out* w]
+        (prn g)))
+    (s3/put-object
+      aws-cred "clojuresphere.com" "project_graph.clj.gz" tmp
+      {} (s3/grant :all-users :read))
+    (.delete tmp)))
+
 ;; See scripts/refresh.sh
 (defn -main [& args]
   (let [clojars-dir (first args)
         projects (fetch-all-projects clojars-dir)
-        g (build-project-graph projects)
-        out-path (str (System/getProperty "user.dir")
-                      "/resources/project_graph.clj")]
-    (println "Saving project graph...")
-    (with-open [w (io/writer out-path)]
-      (binding [*out* w]
-        (pprint g)))
+        g (build-project-graph projects)]
+    (println "Uploading project graph...")
+    (upload-project-graph aws-cred g)
     (println "Done")))
 
 

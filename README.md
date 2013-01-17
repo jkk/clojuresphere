@@ -48,13 +48,13 @@ Browsable dependency graph of Clojure projects. See it live here: http://www.clo
 
 ## Development
 
-To refresh the project graph, run:
+To refresh the project graph, copy `resources/config.clj.default` to `resources/config.clj` and update it with AWS credentials. Then run:
 
 ```
 scripts/refresh.sh
 ```
 
-This takes a long time - about 2 hours. The script pulls down project data from Clojars and GitHub, processes the data, and saves the result to `resources/project_graph.clj`.
+This takes a long time - about 2 hours. The script pulls down project data from Clojars and GitHub, processes the data, and saves the result to S3.
 
 ## License
 

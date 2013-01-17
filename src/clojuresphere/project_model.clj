@@ -1,17 +1,24 @@
 (ns clojuresphere.project-model
-  (:use [clojuresphere.util :only [read-resource]]
-        [clojure.java.io :as io])
-  (:import [org.apache.maven.artifact.versioning DefaultArtifactVersion]))
+  (:use [clojuresphere.util :only [read-resource]])
+  (:import [org.apache.maven.artifact.versioning DefaultArtifactVersion])
+  (:require [clojure.java.io :as io]
+            [sundry.io :as sio]
+            [clj-http.client :as http]))
 
 ;; we don't need no stinkin database
 
-(def graph-data-file "project_graph.clj")
-(defonce graph (read-resource graph-data-file))
+(def graph-url "https://s3.amazonaws.com/clojuresphere.com/project_graph.clj.gz")
+
+(let [resp (http/get graph-url {:as :stream})]
+  (defonce graph
+    (sundry.io/read
+      (java.util.zip.GZIPInputStream.
+        (:body resp))))
+  (def last-updated (get-in resp [:headers "last-modified"])))
+
 (def project-count (count (filter #(or (:github %) (:clojars %)) (vals graph))))
 (def github-count (count (filter :github (vals graph))))
 (def clojars-count (count (filter :clojars (vals graph))))
-(def last-updated (-> graph-data-file
-                      io/resource io/file .lastModified (java.util.Date.)))
 
 (def sorted-pids
   {:dependents (->> graph (sort-by (comp :all :dependent-counts val) >) keys vec)
@@ -34,8 +41,8 @@
        (group-by year-quarter)
        (into (sorted-map))))
 
-(def first-year (first (key (first creates-per-quarter))))
-(def last-year (first (key (last creates-per-quarter))))
+(def first-year (ffirst (first creates-per-quarter)))
+(def last-year (ffirst (last creates-per-quarter)))
 (def quarterly-counts
   (reductions + (map count (vals creates-per-quarter))))
 
