@@ -13,7 +13,9 @@
             [sundry.io :as sio]
             [aws.sdk.s3 :as s3]))
 
-(def config (sio/read (io/resource "config.clj")))
+(def config (try
+              (sio/read (io/resource "config.clj"))
+              (catch Exception _ {})))
 
 (def aws-cred {:access-key (:aws-access-key config)
                :secret-key (:aws-secret-key config)})
