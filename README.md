@@ -45,6 +45,8 @@ Browsable dependency graph of Clojure projects. See it live here: http://www.clo
   - ajax loading indicator
   - use clearfix
   - bigger click target for page heading
+- scrape? https://github.com/search?langOverride=&language=&q=language%3Aclojure&repo=&start_value=1&type=Repositories
+
 
 ## Development
 
