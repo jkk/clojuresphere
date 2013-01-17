@@ -51,14 +51,22 @@
 
   (route/not-found (layout/not-found)))
 
+(defn wrap-canonical-host [handler]
+  (fn [req]
+    (if (= (get-in req [:headers "host"]) "clojuresphere.herokuapp.com")
+      (redirect (str (name (:scheme req))
+                     "://www.clojuresphere.com" (:uri req)))
+      (handler req))))
+
 (def app (-> #'routes
              wrap-request
              wrap-ajax-detect
              wrap-params
-             wrap-gzip))
+             wrap-gzip
+             wrap-canonical-host))
 
 (defn -main []
   (let [port (Integer. (get (System/getenv) "PORT" "9999"))]
-    (run-jetty app {:port port :join? false})))
+    (run-jetty #'app {:port port :join? false})))
 
 ;(run-jetty #'app {:port 8080 :join? false})
