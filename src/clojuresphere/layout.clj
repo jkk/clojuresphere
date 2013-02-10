@@ -91,6 +91,8 @@
         [:p.watchers [:span.label "Watchers"] " " [:span.value (:watchers props)]])
       (when (-> props :github :forks)
         [:p.forks [:span.label "Forks"] " " [:span.value (-> props :github :forks)]])
+      (when (:downloads props)
+        [:p.downloads [:span.label "Clojars Downloads"] " " [:span.value (:downloads props)]])
       (when (and (:updated props) (not (zero? (:updated props))))
         [:p.updated
          [:span.label "Updated"] " "
@@ -171,7 +173,7 @@
           [:span.count (count (:dependents props))]]
          (project-dep-list (sort (:dependents props)))]]))))
 
-(defn project-list [pids]
+(defn project-list [pids & [sort-key]]
   [:ul.project-list
    (for [pid pids
          :let [props (or (proj/graph pid) {})]]
@@ -183,8 +185,11 @@
         [:span.label "Used by"] " " [:span.value (-> props :dependent-counts :all)]]
        (when (:watchers props)
          [:span.stat.watchers
-          [:span.label "Watchers"] " "[:span.value (:watchers props)]])
-       (when (and (:updated props) (not (zero? (:updated props))))
+          [:span.label "Watchers"] " " [:span.value (:watchers props)]])
+       (when (:downloads props)
+         [:span.stat.downloads
+          [:span.label "Downloads"] " " [:span.value (:downloads props)]])
+       #_(when (and (:updated props) (not (zero? (:updated props))))
          [:span.stat.updated
           [:span.label "Updated"] " " [:span.value (date->days-ago (:updated props))
                                        [:span.days-ago-label " days ago"]]]))])
@@ -214,12 +219,12 @@
       [next-tag {:href next-url} "Next"]
       [prev-tag {:href prev-url} "Previous"]]]))
 
-(defn paginated-list [pids offset]
+(defn paginated-list [pids offset & [sort-key]]
   (let [window (take per-page (drop offset pids))]
     (if (empty? window)
       [:p.none "No projects found"]
       (paginate
-       (project-list window)
+       (project-list window sort-key)
        offset
        (count window)))))
 
@@ -272,11 +277,11 @@
        [:h2 title]
        [:div.sort-links
         "Sort by"
-        (for [s ["dependents" "watchers" "updated" "random"]]
+        (for [s ["dependents" "watchers" "downloads" "updated" "random"]]
           (let [a-tag (if (= s sort) :a.active :a)]
             [a-tag {:href (url "/" {:sort s :query (str query)})}
              (capitalize s)]))]
-       (paginated-list pids (if random? 0 offset))]
+       (paginated-list pids (if random? 0 offset) (keyword sort))]
       (stats)
       [:div.clear]])))
 

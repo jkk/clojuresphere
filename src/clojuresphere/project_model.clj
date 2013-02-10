@@ -24,7 +24,7 @@
                            (:body resp)))
                      lu (get-in resp [:headers "last-modified"])]
                  [g lu]))]
-  (def graph g)
+  (defonce graph g)
   (def last-updated lu))
 
 (def project-count (count (filter #(or (:github %) (:clojars %)) (vals graph))))
@@ -37,7 +37,8 @@
    :forks (->> graph (sort-by (comp #(:forks (:github %) 0) val) >) keys vec)
    :updated (->> graph (sort-by (comp #(:updated % 0) val)
                                 (comp - compare))
-                 keys vec)})
+                 keys vec)
+   :downloads (->> graph (sort-by (comp #(:downloads % 0) val) >) keys vec)})
 
 ;;
 

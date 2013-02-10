@@ -199,6 +199,9 @@
             github-extra-projects
             clojars-projects)))
 
+(defn fetch-clojars-stats []
+  (sio/read "https://clojars.org/stats/all.edn"))
+
 ;; project graph
 
 (defn stable? [ver]
@@ -287,10 +290,21 @@
        (assoc-in g [name :dependent-counts] dep-counts)))
    g g))
 
-(defn build-project-graph [projects]
+(defn build-stats [g stats]
+  (reduce
+    (fn [g [pid downloads]]
+      (if (get g pid)
+        (update-in g [pid] assoc :downloads downloads)
+        g))
+    g
+    (for [[[gid aid] vs] stats]
+      [(symbol gid aid) (reduce + (vals vs))])))
+
+(defn build-project-graph [projects & [stats]]
   (-> (build-deps projects)
       (build-info projects)
-      (build-counts)))
+      (build-counts)
+      (build-stats stats)))
 
 (defn upload-project-graph [aws-cred g]
   (s3/copy-object aws-cred "clojuresphere.com"
@@ -310,6 +324,7 @@
 (defn -main [& args]
   (let [clojars-dir (first args)
         projects (fetch-all-projects clojars-dir)
+        stats (fetch-clojars-stats)
         g (build-project-graph projects)]
     ;; sanity check - ensure nothing got smaller
     (if (or (< (count g) (count pm/graph))
@@ -327,16 +342,18 @@
 (comment
   
   ;; Manual fetching process. This takes a long time (like 2 hours)
-  ;; TODO: clean up and automate this
 
   ;; Run this first:
   ;; rsync -av --exclude '*.jar' clojars.org::clojars clojars
 
   (def clojars-dir "/Users/tin/src/clj/clojuresphere/clojars/")
 
+  (def stats (fetch-clojars-stats))
+  
   ;; all at once:
   (def project-graph (build-project-graph
-                      (fetch-all-projects clojars-dir)))
+                      (fetch-all-projects clojars-dir)
+                      stats))
 
   ;; or, step by step:
   #_(def clojars-projects (read-all-pom-projects clojars-dir))
@@ -347,7 +364,8 @@
   #_(def project-graph (build-project-graph
                       (concat github-projects
                               github-extra-projects
-                              clojars-projects)))
+                              clojars-projects)
+                      stats))
 
   ;; TODO: make sure it's readable before writing
   
