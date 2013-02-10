@@ -10,3 +10,4 @@ pom.xml
 .lein-env
 .settings
 /resources/config.clj
+/dev-resources/project_graph.clj.gz

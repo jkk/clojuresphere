@@ -9,12 +9,23 @@
 
 (def graph-url "https://s3.amazonaws.com/clojuresphere.com/project_graph.clj.gz")
 
-(let [resp (http/get graph-url {:as :stream})]
-  (defonce graph
-    (sundry.io/read
-      (java.util.zip.GZIPInputStream.
-        (:body resp))))
-  (def last-updated (get-in resp [:headers "last-modified"])))
+(let [[g lu] (if-let [res (io/resource "project_graph.clj.gz")]
+               (let [f (io/file res)
+                     g (sundry.io/read
+                         (java.util.zip.GZIPInputStream.
+                           (io/input-stream f)))
+                     lu (.toGMTString (java.util.Date.
+                                        (.lastModified f)))]
+                 (println "Loaded resource")
+                 [g lu])
+               (let [resp (http/get graph-url {:as :stream})
+                     g (sundry.io/read
+                         (java.util.zip.GZIPInputStream.
+                           (:body resp)))
+                     lu (get-in resp [:headers "last-modified"])]
+                 [g lu]))]
+  (def graph g)
+  (def last-updated lu))
 
 (def project-count (count (filter #(or (:github %) (:clojars %)) (vals graph))))
 (def github-count (count (filter :github (vals graph))))
