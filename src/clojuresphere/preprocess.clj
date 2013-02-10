@@ -7,7 +7,8 @@
         [clojuresphere.project-model :only [qualify-name lein-coord
                                             sort-versions latest-stable-coord?
                                             latest-coord? count-dependents]])
-  (:require [clojure.xml :as xml]
+  (:require [clojuresphere.project-model :as pm]
+            [clojure.xml :as xml]
             [clojure.zip :as zip]
             [clojure.java.io :as io]
             [sundry.io :as sio]
@@ -292,6 +293,8 @@
       (build-counts)))
 
 (defn upload-project-graph [aws-cred g]
+  (s3/copy-object aws-cred "clojuresphere.com"
+                  "project_graph.clj.gz" "project_graph_previous.clj.gz")
   (let [tmp (java.io.File/createTempFile "project_graph" ".clj.gz")]
     (with-open [w (io/writer
                     (java.util.zip.GZIPOutputStream.
@@ -308,9 +311,17 @@
   (let [clojars-dir (first args)
         projects (fetch-all-projects clojars-dir)
         g (build-project-graph projects)]
-    (println "Uploading project graph...")
-    (upload-project-graph aws-cred g)
-    (println "Done")))
+    ;; sanity check - ensure nothing got smaller
+    (if (or (< (count g) (count pm/graph))
+            (< (count (filter :github (vals g)))
+               (count (filter :github (vals pm/graph))))
+            (< (count (filter :clojars (vals g)))
+               (count (filter :clojars (vals pm/graph)))))
+      (println "Failed sanity check!")
+      (do
+        (println "Uploading project graph...")
+        (upload-project-graph aws-cred g)
+        (println "Done")))))
 
 
 (comment
