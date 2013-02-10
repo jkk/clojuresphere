@@ -181,6 +181,8 @@
       (link-to
        (str pid)
        [:span.name (h (name pid))]
+       #_[:span.stat.score
+        [:span.label "Score"] " " [:span.value (proj/score-project props)]]
        [:span.stat.dep-count
         [:span.label "Used by"] " " [:span.value (-> props :dependent-counts :all)]]
        (when (:watchers props)
@@ -262,7 +264,7 @@
 (defn projects [query sort offset]
   (page
    nil
-   (let [sort (or sort "dependents")
+   (let [sort (or sort "score")
          random? (= "random" sort)
          pids (cond
                (seq query) (proj/sort-pids (proj/find-pids query) sort)
@@ -277,7 +279,7 @@
        [:h2 title]
        [:div.sort-links
         "Sort by"
-        (for [s ["dependents" "watchers" "downloads" "updated" "random"]]
+        (for [s ["score" "dependents" "watchers" "downloads" "updated" #_"random"]]
           (let [a-tag (if (= s sort) :a.active :a)]
             [a-tag {:href (url "/" {:sort s :query (str query)})}
              (capitalize s)]))]

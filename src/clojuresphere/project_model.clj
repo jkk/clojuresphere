@@ -31,6 +31,43 @@
 (def github-count (count (filter :github (vals graph))))
 (def clojars-count (count (filter :clojars (vals graph))))
 
+(def avg-depcount
+  (quot
+    (reduce + (keep (comp :all :dependent-counts) (vals graph)))
+    (count graph)))
+(def avg-watchers
+  (let [pw (keep :watchers (vals graph))]
+    (quot (reduce + pw) (count pw))))
+(def avg-downloads
+  (let [pd (keep :downloads (vals graph))]
+    (quot (reduce + pd) (count pd))))
+
+(defn get-clj-version [props]
+  (when-let [latest (:latest props)]
+    (let [deps (get-in props [:versions latest :dependencies])
+          coord (first (filter #(= 'org.clojure/clojure (first %)) deps))
+          ver (when (and coord (second coord))
+                (re-find #"^\d+\.\d+" (second coord)))]
+      (when ver
+        (BigDecimal. ver)))))
+
+(defn score-project [props]
+  (let [deps (-> props :dependent-counts :all)
+        watchers (or (:watchers props) 0)
+        downloads (or (:downloads props) 0)
+        base-score (+ (/ deps avg-depcount)
+                      (/ watchers avg-watchers)
+                      #_(/ downloads avg-downloads))
+        ;; penalize projects using old clojure, small bonus for cutting-edge
+        damp (condp = (get-clj-version props)
+               1.5M 1.1
+               1.4M 1.1
+               1.2M 0.60
+               1.1M 0.25
+               1.0M 0.1
+               1.0)]
+    (* base-score damp)))
+
 (def sorted-pids
   {:dependents (->> graph (sort-by (comp :all :dependent-counts val) >) keys vec)
    :watchers (->> graph (sort-by (comp #(:watchers % 0) val) >) keys vec)
@@ -38,7 +75,8 @@
    :updated (->> graph (sort-by (comp #(:updated % 0) val)
                                 (comp - compare))
                  keys vec)
-   :downloads (->> graph (sort-by (comp #(:downloads % 0) val) >) keys vec)})
+   :downloads (->> graph (sort-by (comp #(:downloads % 0) val) >) keys vec)
+   :score (->> graph (sort-by (comp score-project val) >) keys vec)})
 
 ;;
 
@@ -78,6 +116,8 @@
                  :watchers :watchers
                  :updated :updated
                  :created :created
+                 :downloads :downloads
+                 :score score-project
                  (comp :all :dependent-counts))]
     (sort-by (comp #(or % 0) key-fn graph) > pids)))
 
